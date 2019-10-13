@@ -1,0 +1,15 @@
+.calendarHeader {
+  &__container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__title {
+    letter-spacing: 2px;
+  }
+}
+
+.disableNavIcon {
+  color: #d3d3d3;
+  pointer-events: none;
+}

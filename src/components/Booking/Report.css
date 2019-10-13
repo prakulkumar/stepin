@@ -1,0 +1,41 @@
+.report__container {
+    font-size: 16px;
+    color: grey;
+    height: 60vh;
+    overflow: auto;
+}
+
+.report__section {
+    padding: 10px 20px;
+}
+
+.report__section:not(:last-child) {
+    border-bottom: 1px solid rgba(153, 170, 171, .5);
+}
+
+.report-row {
+    width: 100%;
+    display: flex;
+}
+
+.report-key {
+    display: inline-block;
+    width: 50%;
+    font-weight: 630;
+}
+
+.report-value {
+    display: inline-block;
+    width: 50%;
+    text-align: end;
+    font-weight: 470;
+}
+
+.report__footerContainer {
+    display: flex;
+    justify-content: end;
+}
+
+.report__btn:not(:last-child) {
+    margin-right: 10px;
+}
