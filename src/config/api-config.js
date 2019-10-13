@@ -1,6 +1,7 @@
 let gatewayApi;
 
 gatewayApi = process.env.API_URL;
+console.log(process.env.NODE_ENV);
 
 if (process.env.NODE_ENV === "development")
   gatewayApi = "http://localhost:5000";
