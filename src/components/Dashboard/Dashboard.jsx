@@ -155,6 +155,7 @@ class Dashboard extends Component {
               allBookings={allBookings}
               title={posDialogTitle}
               onClose={() => this.handleDialog(dialog.contentOf)}
+              onSnackbarEvent={this.handleSnackbarEvent}
             />
           )}
         </Dialog>

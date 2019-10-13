@@ -50,5 +50,22 @@ export default {
     cash: Joi.number(),
     card: Joi.number(),
     wallet: Joi.number()
+  },
+  POSFormSchema: {
+    roomNumber: Joi.string()
+      .required()
+      .label("Room Number"),
+    bookingId: Joi.string()
+      .required()
+      .label("Booking"),
+    date: Joi.date()
+      .required()
+      .label("Date"),
+    amount: Joi.number()
+      .required()
+      .label("Amount"),
+    remarks: Joi.string()
+      .required()
+      .label("Remarks")
   }
 };

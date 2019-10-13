@@ -148,7 +148,8 @@ class BookingFormLayout extends Component {
   };
 
   checkForErrors = () => {
-    const errors = FormUtils.validate(this.state.data, schema);
+    let errors = FormUtils.validate(this.state.data, schema);
+    errors = errors || {};
     this.setState({ errors });
     return Object.keys(errors).length;
   };
