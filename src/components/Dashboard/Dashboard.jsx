@@ -12,6 +12,7 @@ import Snackbar from "../../common/Snackbar/Snackbar";
 import Dialog from "./../../common/Dialog/Dialog";
 
 import roomService from "../../services/roomService";
+import bookingService from "../../services/bookingService";
 import utils from "../../utils/utils";
 import constants from "../../utils/constants";
 import "./Dashboard.scss";
@@ -26,6 +27,7 @@ class Dashboard extends Component {
     selectedRoom: null,
     selectedDate: utils.getDate(),
     posDialogTitle: "",
+    loading: false,
     snackbarObj: {
       open: false,
       message: "",
@@ -44,11 +46,17 @@ class Dashboard extends Component {
 
   async componentDidMount() {
     const allRooms = await roomService.getRooms();
+    this.getAllBookings();
     this.setState({ allRooms });
   }
 
-  setAllBookings = allBookings => {
-    this.setState({ allBookings });
+  getAllBookings = async () => {
+    const bookingsFromDb = await bookingService.getBookings(
+      utils.getDateObj(this.state.currentDate)
+    );
+    const allBookings = [...bookingsFromDb];
+
+    this.setState({ allBookings, loading: false });
   };
 
   handleDialog = (showFor, size) => {
@@ -102,6 +110,10 @@ class Dashboard extends Component {
     this.props.history.push("/report");
   };
 
+  handleLoading = value => {
+    this.setState({ loading: value });
+  };
+
   handleSnackbarEvent = snackbarObj => {
     this.setState({ snackbarObj });
   };
@@ -124,7 +136,8 @@ class Dashboard extends Component {
       allRooms,
       allBookings,
       dialog,
-      posDialogTitle
+      posDialogTitle,
+      loading
     } = this.state;
 
     return (
@@ -197,12 +210,14 @@ class Dashboard extends Component {
               exact
               render={props => (
                 <Calendar
+                  // isRefresh={isRefresh}
+                  // onRefresh={this.handleRefresh}
                   currentDate={currentDate}
-                  isRefresh={isRefresh}
-                  onRefresh={this.handleRefresh}
                   onFormRedirect={this.handleFormRedirect}
                   allRooms={allRooms}
-                  setAllBookings={this.setAllBookings}
+                  allBookings={allBookings}
+                  loading={loading}
+                  onLoading={this.handleLoading}
                   {...props}
                 />
               )}
