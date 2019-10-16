@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CalendarHeader from "./CalendarHeader";
 import CalendarBody from "./CalendarBody";
-import Dialog from "./../../common/Dialog/Dialog";
+// import Dialog from "./../../common/Dialog/Dialog";
 import utils from "./../../utils/utils";
 import moment from "moment";
 
@@ -14,35 +14,32 @@ const Calendar = props => {
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState([]);
   let tempRows = [];
-  // const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
     const title = getTitle(props.currentDate);
 
     setTitle(title);
-    setDateObj(dateObj);
     props.onLoading(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (allBookings.length > 0) {
-      showBookings(dateObj, allBookings);
-    }
+    if (allBookings.length > 0) showBookings(dateObj, allBookings, allRooms);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allBookings, dateObj]);
+  }, [allBookings]);
 
   useEffect(() => {
     if (allRooms.length > 0) {
       const rows = getTableRows(allRooms, dateObj);
       setRows(rows);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allRooms, dateObj]);
 
-  const showBookings = (dateObj, bookings) => {
-    const allRooms = props.allRooms;
-    tempRows = rows;
+  const showBookings = (dateObj, bookings, allRooms) => {
+    tempRows = getTableRows(allRooms, dateObj);
 
     bookings &&
       bookings.forEach(booking => {
@@ -155,7 +152,8 @@ const Calendar = props => {
 
     setTitle(title);
     setDateObj(newDateObj);
-    // this.showBookingProcess(dateObj);
+    props.onLoading(true);
+    props.setBookings(newDateObj);
   };
 
   return (

@@ -46,16 +46,13 @@ class Dashboard extends Component {
 
   async componentDidMount() {
     const allRooms = await roomService.getRooms();
-    this.getAllBookings();
+    const dateObj = utils.getDateObj(this.state.currentDate);
+    this.setBookings(dateObj);
     this.setState({ allRooms });
   }
 
-  getAllBookings = async () => {
-    const bookingsFromDb = await bookingService.getBookings(
-      utils.getDateObj(this.state.currentDate)
-    );
-    const allBookings = [...bookingsFromDb];
-
+  setBookings = async dateObj => {
+    const allBookings = await bookingService.getBookings(dateObj);
     this.setState({ allBookings, loading: false });
   };
 
@@ -218,6 +215,7 @@ class Dashboard extends Component {
                   allBookings={allBookings}
                   loading={loading}
                   onLoading={this.handleLoading}
+                  setBookings={this.setBookings}
                   {...props}
                 />
               )}
