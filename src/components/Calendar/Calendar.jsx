@@ -16,14 +16,17 @@ const Calendar = props => {
   let tempRows = [];
 
   useEffect(() => {
+    console.log("starting");
     const title = getTitle(props.currentDate);
 
     setTitle(title);
     props.onLoading(true);
+    props.setBookings(dateObj);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    console.log("Booking");
     if (allBookings.length > 0) showBookings(dateObj, allBookings, allRooms);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
