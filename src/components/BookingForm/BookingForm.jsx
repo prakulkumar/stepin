@@ -213,7 +213,6 @@ const BookingForm = props => {
                 </div>
               );
             })}
-            {/* {FormUtils.renderSelect("roomNumber", "Room Number", null, "")} */}
           </ExpansionPanelDetails>
         </ExpansionPanel>
       </div>

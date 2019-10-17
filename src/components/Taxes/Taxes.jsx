@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import taxService from "../../services/taxService";
 
+import Loader from "../../common/Loader/Loader";
 import {
   DialogActions,
   DialogContent,
@@ -28,19 +29,23 @@ const useStyles = makeStyles(theme => ({
 const Taxes = ({ onClose }) => {
   const classes = useStyles();
   const [taxSlabs, setTaxSlabs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const taxSlabs = await taxService.getTaxSlabs();
-      setTaxSlabs(taxSlabs);
-    };
-
+    setLoading(true);
     fetchData();
   }, []);
+
+  const fetchData = async () => {
+    const taxSlabs = await taxService.getTaxSlabs();
+    setTaxSlabs(taxSlabs);
+    setLoading(false);
+  };
 
   return (
     <React.Fragment>
       <DialogTitle>Tax Slabs</DialogTitle>
+      {loading && <Loader color="primary" />}
       <DialogContent>
         {taxSlabs.map(taxInfo => (
           <div key={taxInfo._id} className={classes.formGroup}>

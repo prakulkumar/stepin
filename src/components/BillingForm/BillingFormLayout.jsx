@@ -1,14 +1,17 @@
 import React, { Component } from "react";
-import Card from "../../common/Card/Card";
-import BillingHeader from "./BillingFormHeader";
+
 import BillingForm from "./BillingForm";
+import BillingHeader from "./BillingFormHeader";
+import Card from "../../common/Card/Card";
+import LoaderDialog from "../../common/LoaderDialog/LoaderDialog";
+
+import constants from "../../utils/constants";
 import schemas from "../../utils/joiUtils";
 import FormUtils from "../../utils/formUtils";
-import constants from "../../utils/constants";
-
-import taxService from "../../services/taxService";
-import bookingService from "../../services/bookingService";
 import utils from "../../utils/utils";
+import bookingService from "../../services/bookingService";
+import taxService from "../../services/taxService";
+
 const { success, error } = constants.snackbarVariants;
 
 const schema = schemas.billingFormSchema;
@@ -29,7 +32,8 @@ class BillingFormLayout extends Component {
       cash: { checked: false, disable: true },
       card: { checked: false, disable: true },
       wallet: { checked: false, disable: true }
-    }
+    },
+    loading: false
   };
 
   async componentDidMount() {
@@ -161,6 +165,7 @@ class BillingFormLayout extends Component {
     this.setState({ errors });
     if (Object.keys(errors).length) return;
 
+    this.setState({ loading: true });
     const { selectedBooking } = this.state;
     selectedBooking.checkedOutTime = utils.getTime();
     selectedBooking.status = { ...selectedBooking.status, checkedOut: true };
@@ -172,6 +177,7 @@ class BillingFormLayout extends Component {
 
   updateBookingPayment = async bookingData => {
     const { status } = await bookingService.updateBooking(bookingData);
+    this.setState({ loading: false });
     if (status === 200) {
       this.openSnackBar("Checked out Successfully", success);
       this.props.onRedirectFromBilling(bookingData);
@@ -184,7 +190,7 @@ class BillingFormLayout extends Component {
   };
 
   render() {
-    const { data, errors, selectedBooking, payment } = this.state;
+    const { data, errors, selectedBooking, payment, loading } = this.state;
     const cardContent = (
       <BillingForm
         onInputChange={this.handleInputChange}
@@ -199,12 +205,15 @@ class BillingFormLayout extends Component {
     );
 
     return (
-      <Card
-        header={<BillingHeader />}
-        content={cardContent}
-        maxWidth={700}
-        margin="80px auto"
-      />
+      <React.Fragment>
+        {loading && <LoaderDialog open={loading} />}
+        <Card
+          header={<BillingHeader />}
+          content={cardContent}
+          maxWidth={700}
+          margin="80px auto"
+        />
+      </React.Fragment>
     );
   }
 }
