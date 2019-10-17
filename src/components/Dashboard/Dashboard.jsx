@@ -31,7 +31,8 @@ class Dashboard extends Component {
     snackbarObj: {
       open: false,
       message: "",
-      variant: constants.snackbarVariants.success
+      variant: constants.snackbarVariants.success,
+      resetBookings: false
     },
     dialog: {
       open: false,
@@ -115,7 +116,8 @@ class Dashboard extends Component {
   };
 
   handleSnackbarEvent = snackbarObj => {
-    this.setState({ snackbarObj });
+    this.setState({ snackbarObj, loading: true });
+    snackbarObj.resetBookings && this.setBookings(this.state.currentDateObj);
   };
 
   handleSnackBar = () => {

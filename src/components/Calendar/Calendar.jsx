@@ -29,7 +29,6 @@ const Calendar = props => {
   }, []);
 
   useEffect(() => {
-    console.log("booking", allBookings);
     if (allBookings.length > 0) showBookings(dateObj, allBookings, allRooms);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

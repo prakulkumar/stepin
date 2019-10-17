@@ -159,15 +159,14 @@ class POSForm extends Component {
 
     const response = await bookingService.updateBooking(booking);
     if (response.status === 200)
-      this.openSnackBar("Updated Successfully", success, "/");
+      this.openSnackBar("Updated Successfully", success);
     else this.openSnackBar("Error Occurred", error);
     onClose();
   };
 
-  openSnackBar = (message, variant, redirectTo) => {
-    const snakbarObj = { open: true, message, variant };
+  openSnackBar = (message, variant) => {
+    const snakbarObj = { open: true, message, variant, resetBookings: true };
     this.props.onSnackbarEvent(snakbarObj);
-    //redirectTo && this.props.history.push(redirectTo);
   };
 
   render() {

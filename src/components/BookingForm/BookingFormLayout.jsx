@@ -159,7 +159,7 @@ class BookingFormLayout extends Component {
   };
 
   openSnackBar = (message, variant, redirectTo) => {
-    const snakbarObj = { open: true, message, variant };
+    const snakbarObj = { open: true, message, variant, resetBookings: false };
     this.props.onSnackbarEvent(snakbarObj);
     redirectTo && this.props.history.push(redirectTo);
   };

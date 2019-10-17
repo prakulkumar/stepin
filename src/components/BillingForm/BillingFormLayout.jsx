@@ -185,7 +185,7 @@ class BillingFormLayout extends Component {
   };
 
   openSnackBar = (message, variant) => {
-    const snakbarObj = { open: true, message, variant };
+    const snakbarObj = { open: true, message, variant, resetBookings: false };
     this.props.onSnackbarEvent(snakbarObj);
   };
 
