@@ -4,6 +4,7 @@ import utils from "../../utils/utils";
 import Card from "../../common/Card/Card";
 import BookingForm from "../BookingForm/BookingForm";
 import BookingFormHeader from "./BookingFormHeader";
+import LoaderDialog from "../../common/LoaderDialog/LoaderDialog";
 
 import FormUtils from "../../utils/formUtils";
 import constants from "../../utils/constants";
@@ -52,7 +53,8 @@ class BookingFormLayout extends Component {
     startDate: null,
     endDate: null,
     isEdit: false,
-    shouldDisable: false
+    shouldDisable: false,
+    loading: false
   };
 
   async componentDidMount() {
@@ -134,6 +136,7 @@ class BookingFormLayout extends Component {
 
   createBooking = async bookingData => {
     const { status } = await bookingService.addBooking(bookingData);
+    this.setState({ loading: false });
     if (status === 200) this.openSnackBar("Booking Successfull", success, "/");
     else this.openSnackBar("Error Occurred", error);
   };
@@ -143,6 +146,7 @@ class BookingFormLayout extends Component {
     message = "Booking Updated Successfully"
   ) => {
     const { status } = await bookingService.updateBooking(bookingData);
+    this.setState({ loading: false });
     if (status === 200) this.openSnackBar(message, success, "/");
     else this.openSnackBar("Error Occurred", error);
   };
@@ -226,6 +230,7 @@ class BookingFormLayout extends Component {
     const errors = this.checkForErrors();
     if (errors) return;
 
+    this.setState({ loading: true });
     let bookingData = {
       ...data,
       balance: data.roomCharges - data.advance
@@ -261,10 +266,6 @@ class BookingFormLayout extends Component {
     this.setState({ data });
   };
 
-  handleEdit = () => {
-    this.setState({ isEdit: true, shouldDisable: false });
-  };
-
   handleBack = () => {
     this.props.history.push("/");
   };
@@ -276,7 +277,7 @@ class BookingFormLayout extends Component {
   handleCancel = () => {
     const data = { ...this.state.data };
     data.status = { ...data.status, cancel: true };
-    this.setState({ data });
+    this.setState({ data, loading: true });
     this.updateBooking(data, "Booking Cancelled Successfully");
   };
 
@@ -284,7 +285,7 @@ class BookingFormLayout extends Component {
     const data = { ...this.state.data };
     data.checkedInTime = utils.getTime();
     data.status = { ...data.status, checkedIn: true };
-    this.setState({ data });
+    this.setState({ data, loading: true });
     this.updateBooking(data, "Checked In Successfully");
   };
 
@@ -293,7 +294,7 @@ class BookingFormLayout extends Component {
   };
 
   render() {
-    const { data, availableRooms, errors, shouldDisable } = this.state;
+    const { data, availableRooms, errors, shouldDisable, loading } = this.state;
 
     const cardContent = (
       <BookingForm
@@ -313,24 +314,27 @@ class BookingFormLayout extends Component {
     );
 
     return (
-      <div className="cardContainer">
-        <Card
-          header={
-            <BookingFormHeader
-              status={data.status}
-              checkIn={data.checkIn}
-              checkOut={data.checkOut}
-              onEdit={this.handleEdit}
-              onCancel={this.handleCancel}
-              onCheckIn={this.handleCheckIn}
-              onCheckOut={this.handleCheckOut}
-            />
-          }
-          content={cardContent}
-          maxWidth={700}
-          margin="40px auto"
-        />
-      </div>
+      <React.Fragment>
+        {loading && <LoaderDialog open={loading} />}
+        <div className="cardContainer">
+          <Card
+            header={
+              <BookingFormHeader
+                status={data.status}
+                checkIn={data.checkIn}
+                checkOut={data.checkOut}
+                onEdit={this.handleEdit}
+                onCancel={this.handleCancel}
+                onCheckIn={this.handleCheckIn}
+                onCheckOut={this.handleCheckOut}
+              />
+            }
+            content={cardContent}
+            maxWidth={700}
+            margin="40px auto"
+          />
+        </div>
+      </React.Fragment>
     );
   }
 }
