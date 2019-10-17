@@ -20,7 +20,7 @@ import "./Dashboard.scss";
 class Dashboard extends Component {
   state = {
     currentDate: utils.getDate(),
-    isRefresh: false,
+    currentDateObj: utils.getDateObj(utils.getDate()),
     selectedBooking: null,
     allBookings: [],
     allRooms: [],
@@ -54,6 +54,10 @@ class Dashboard extends Component {
     this.setState({ allBookings, loading: false });
   };
 
+  setDateObj = (dateObj, date) => {
+    this.setState({ currentDateObj: dateObj, currentDate: date });
+  };
+
   handleDialog = (showFor, size) => {
     const dialog = { ...this.state.dialog };
     const openFor = { ...dialog.openFor };
@@ -75,7 +79,8 @@ class Dashboard extends Component {
   };
 
   handleRefresh = () => {
-    window.location.reload();
+    this.setState({ loading: true });
+    this.setBookings(this.state.currentDateObj);
   };
 
   handleRedirectFromNavbar = () => {
@@ -123,7 +128,7 @@ class Dashboard extends Component {
   render() {
     const {
       currentDate,
-      isRefresh,
+      currentDateObj,
       snackbarObj,
       selectedBooking,
       selectedRoom,
@@ -205,15 +210,15 @@ class Dashboard extends Component {
               exact
               render={props => (
                 <Calendar
-                  // isRefresh={isRefresh}
-                  // onRefresh={this.handleRefresh}
                   currentDate={currentDate}
+                  currentDateObj={currentDateObj}
                   onFormRedirect={this.handleFormRedirect}
                   allRooms={allRooms}
                   allBookings={allBookings}
                   loading={loading}
                   onLoading={this.handleLoading}
                   setBookings={this.setBookings}
+                  setDateObj={this.setDateObj}
                   {...props}
                 />
               )}

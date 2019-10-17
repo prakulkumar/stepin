@@ -8,16 +8,20 @@ import moment from "moment";
 import "./Calendar.scss";
 
 const Calendar = props => {
-  const { allBookings, allRooms, loading } = props;
+  const {
+    allBookings,
+    allRooms,
+    loading,
+    currentDateObj: dateObj,
+    currentDate
+  } = props;
 
-  const [dateObj, setDateObj] = useState(utils.getDateObj(props.currentDate));
   const [title, setTitle] = useState("");
   const [rows, setRows] = useState([]);
   let tempRows = [];
 
   useEffect(() => {
-    const title = getTitle(props.currentDate);
-
+    const title = getTitle(currentDate);
     setTitle(title);
     props.onLoading(true);
     props.setBookings(dateObj);
@@ -25,6 +29,7 @@ const Calendar = props => {
   }, []);
 
   useEffect(() => {
+    console.log("booking", allBookings);
     if (allBookings.length > 0) showBookings(dateObj, allBookings, allRooms);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -38,6 +43,11 @@ const Calendar = props => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allRooms, dateObj]);
+
+  useEffect(() => {
+    const title = getTitle(currentDate);
+    setTitle(title);
+  }, [currentDate]);
 
   const showBookings = (dateObj, bookings, allRooms) => {
     tempRows = getTableRows(allRooms, dateObj);
@@ -149,10 +159,8 @@ const Calendar = props => {
     const prevDate = new Date(dateObj.year, dateObj.month);
     const newDate = moment(prevDate).add(value, "M");
     const newDateObj = utils.getDateObj(newDate);
-    const title = getTitle(newDate);
 
-    setTitle(title);
-    setDateObj(newDateObj);
+    props.setDateObj(newDateObj, newDate);
     props.onLoading(true);
     props.setBookings(newDateObj);
   };

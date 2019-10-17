@@ -49,7 +49,7 @@ const HeaderNavbar = ({
           {path === "/" && (
             <React.Fragment>
               <POSMenu showPOSDialog={showPOSDialog} />
-              <Button color="inherit" onClick={() => onRefresh()}>
+              <Button color="inherit" onClick={onRefresh}>
                 Refresh
               </Button>
             </React.Fragment>
