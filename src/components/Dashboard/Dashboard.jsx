@@ -46,8 +46,6 @@ class Dashboard extends Component {
 
   async componentDidMount() {
     const allRooms = await roomService.getRooms();
-    const dateObj = utils.getDateObj(this.state.currentDate);
-    this.setBookings(dateObj);
     this.setState({ allRooms });
   }
 

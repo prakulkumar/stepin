@@ -16,7 +16,6 @@ const Calendar = props => {
   let tempRows = [];
 
   useEffect(() => {
-    console.log("starting");
     const title = getTitle(props.currentDate);
 
     setTitle(title);
@@ -26,7 +25,6 @@ const Calendar = props => {
   }, []);
 
   useEffect(() => {
-    console.log("Booking");
     if (allBookings.length > 0) showBookings(dateObj, allBookings, allRooms);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
