@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import SnackBarContext from "../../context/snackBarContext";
 
 import BillingForm from "./BillingForm";
 import BillingHeader from "./BillingFormHeader";
@@ -17,6 +18,8 @@ const { success, error } = constants.snackbarVariants;
 const schema = schemas.billingFormSchema;
 
 const BillingFormLayout = props => {
+  const handleSnackbarEvent = useContext(SnackBarContext);
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState();
 
@@ -195,7 +198,7 @@ const BillingFormLayout = props => {
 
   const openSnackBar = (message, variant) => {
     const snakbarObj = { open: true, message, variant, resetBookings: false };
-    props.onSnackbarEvent(snakbarObj);
+    handleSnackbarEvent(snakbarObj);
   };
 
   const cardContent = (

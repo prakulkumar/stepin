@@ -13,8 +13,9 @@ import Dialog from "./../../common/Dialog/Dialog";
 
 import roomService from "../../services/roomService";
 import bookingService from "../../services/bookingService";
-import utils from "../../utils/utils";
+import SnackBarContext from "./../../context/snackBarContext";
 import constants from "../../utils/constants";
+import utils from "../../utils/utils";
 import "./Dashboard.scss";
 
 const Dashboard = props => {
@@ -142,92 +143,94 @@ const Dashboard = props => {
   };
 
   return (
-    <div className="mainContainer">
-      <Snackbar
-        open={snackbarObj.open}
-        message={snackbarObj.message}
-        onClose={handleSnackBar}
-        variant={snackbarObj.variant}
-      />
-      <Navbar
-        onRefresh={handleRefresh}
-        showTaxes={handleShowTaxes}
-        showPOSDialog={handleShowPOSDialog}
-        path={props.location.pathname}
-        onRedirectFromNavbar={handleRedirectFromNavbar}
-      />
-      <Dialog
-        open={dialog.open}
-        onClose={() => handleDialog(dialog.contentOf)}
-        size={dialog.size}
-      >
-        {dialog.openFor.taxes && (
-          <Taxes onClose={() => handleDialog(dialog.contentOf)} />
-        )}
-        {dialog.openFor.pos && (
-          <POSDialog
-            allBookings={allBookings}
-            title={posDialogTitle}
-            onClose={() => handleDialog(dialog.contentOf)}
-            onSnackbarEvent={handleSnackbarEvent}
-          />
-        )}
-      </Dialog>
+    <SnackBarContext.Provider value={handleSnackbarEvent}>
+      <div className="mainContainer">
+        <Snackbar
+          open={snackbarObj.open}
+          message={snackbarObj.message}
+          onClose={handleSnackBar}
+          variant={snackbarObj.variant}
+        />
+        <Navbar
+          onRefresh={handleRefresh}
+          showTaxes={handleShowTaxes}
+          showPOSDialog={handleShowPOSDialog}
+          path={props.location.pathname}
+          onRedirectFromNavbar={handleRedirectFromNavbar}
+        />
+        <Dialog
+          open={dialog.open}
+          onClose={() => handleDialog(dialog.contentOf)}
+          size={dialog.size}
+        >
+          {dialog.openFor.taxes && (
+            <Taxes onClose={() => handleDialog(dialog.contentOf)} />
+          )}
+          {dialog.openFor.pos && (
+            <POSDialog
+              allBookings={allBookings}
+              title={posDialogTitle}
+              onClose={() => handleDialog(dialog.contentOf)}
+              // onSnackbarEvent={handleSnackbarEvent}
+            />
+          )}
+        </Dialog>
 
-      <div className="subContainer">
-        <Switch>
-          <Route
-            path={["/booking/newBooking", "/booking/viewBooking"]}
-            render={props => (
-              <BookingFormLayout
-                onSnackbarEvent={handleSnackbarEvent}
-                selectedBooking={selectedBooking}
-                selectedRoom={selectedRoom}
-                selectedDate={selectedDate}
-                onCheckOutRedirect={handleCheckOutRedirect}
-                {...props}
-              />
-            )}
-          />
-          <Route
-            path="/billing"
-            render={props => (
-              <BillingFormLayout
-                onSnackbarEvent={handleSnackbarEvent}
-                selectedBooking={selectedBooking}
-                onRedirectFromBilling={handleRedirectFromBilling}
-                {...props}
-              />
-            )}
-          />
-          <Route
-            path="/report"
-            render={props => (
-              <Report selectedBooking={selectedBooking} {...props} />
-            )}
-          />
-          <Route
-            path="/"
-            exact
-            render={props => (
-              <Calendar
-                allRooms={allRooms}
-                currentDate={currentDate}
-                currentDateObj={currentDateObj}
-                onFormRedirect={handleFormRedirect}
-                allBookings={allBookings}
-                loading={loading}
-                onLoading={handleLoading}
-                setBookings={setBookings}
-                setDateObj={setDateObj}
-                {...props}
-              />
-            )}
-          />
-          <Redirect to="/" />
-        </Switch>
+        <div className="subContainer">
+          <Switch>
+            <Route
+              path={["/booking/newBooking", "/booking/viewBooking"]}
+              render={props => (
+                <BookingFormLayout
+                  onSnackbarEvent={handleSnackbarEvent}
+                  selectedBooking={selectedBooking}
+                  selectedRoom={selectedRoom}
+                  selectedDate={selectedDate}
+                  onCheckOutRedirect={handleCheckOutRedirect}
+                  {...props}
+                />
+              )}
+            />
+            <Route
+              path="/billing"
+              render={props => (
+                <BillingFormLayout
+                  onSnackbarEvent={handleSnackbarEvent}
+                  selectedBooking={selectedBooking}
+                  onRedirectFromBilling={handleRedirectFromBilling}
+                  {...props}
+                />
+              )}
+            />
+            <Route
+              path="/report"
+              render={props => (
+                <Report selectedBooking={selectedBooking} {...props} />
+              )}
+            />
+            <Route
+              path="/"
+              exact
+              render={props => (
+                <Calendar
+                  allRooms={allRooms}
+                  currentDate={currentDate}
+                  currentDateObj={currentDateObj}
+                  onFormRedirect={handleFormRedirect}
+                  allBookings={allBookings}
+                  loading={loading}
+                  onLoading={handleLoading}
+                  setBookings={setBookings}
+                  setDateObj={setDateObj}
+                  {...props}
+                />
+              )}
+            />
+            <Redirect to="/" />
+          </Switch>
+        </div>
       </div>
-    </div>
+    </SnackBarContext.Provider>
   );
 };
 
