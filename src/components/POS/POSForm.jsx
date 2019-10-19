@@ -105,7 +105,6 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
     delete updatedErrors[input.name];
 
     const roomNo = input.value;
-    console.log(roomNo);
     const filteredArray = posData.filter(
       data => data.room.roomNumber === roomNo
     );
@@ -198,10 +197,12 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
             disabled: disable
           })}
         </div>
-        <div className="form-group" onClick={handleDatePicker}>
-          {FormUtils.renderDatepicker(
-            getDateArgObj("date", "Date", "text", minDate, disable)
-          )}
+        <div className="form-group">
+          <div style={{ width: "100%" }} onClick={handleDatePicker}>
+            {FormUtils.renderDatepicker(
+              getDateArgObj("date", "Date", "text", minDate, disable)
+            )}
+          </div>
           {FormUtils.renderInput(
             getInputArgObj("amount", "Amount", "text", disable)
           )}
