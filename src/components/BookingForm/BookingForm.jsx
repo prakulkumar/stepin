@@ -77,7 +77,7 @@ const BookingForm = props => {
   };
 
   const getRoomOptions = roomType => {
-    if (availableRooms.length === 0) return [];
+    // if (availableRooms.length === 0) return [];
 
     const roomsByType = availableRooms.filter(
       room => room.roomType === roomType

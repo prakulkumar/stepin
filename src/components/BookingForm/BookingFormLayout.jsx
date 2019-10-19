@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import utils from "../../utils/utils";
 
 import Card from "../../common/Card/Card";
@@ -23,93 +23,90 @@ const roomTypes = [
   { label: "Dormitory", value: "Dormitory" }
 ];
 
-class BookingFormLayout extends Component {
-  state = {
-    data: {
-      hotelName: "Hotel Black Rose",
-      hotelAddress: "#234 street, Bangalore",
-      firstName: "",
-      lastName: "",
-      address: "",
-      checkIn: utils.getDate(),
-      checkOut: utils.getDate(),
-      checkedInTime: "",
-      checkedOutTime: "",
-      adults: "",
-      children: 0,
-      contactNumber: "",
-      rooms: [],
-      roomCharges: "",
-      advance: "",
-      bookingDate: null,
-      status: {
-        cancel: false,
-        checkedIn: false,
-        checkedOut: false
-      }
-    },
-    openDatePicker: {
-      checkIn: false,
-      checkOut: false
-    },
-    errors: {},
-    availableRooms: [],
-    startDate: null,
-    endDate: null,
-    isEdit: false,
-    shouldDisable: false,
-    loading: false
-  };
+const BookingFormLayout = ({
+  location,
+  history,
+  selectedRoom,
+  selectedBooking,
+  selectedDate,
+  onSnackbarEvent,
+  onCheckOutRedirect
+}) => {
+  const [data, setData] = useState({
+    hotelName: "Hotel Black Rose",
+    hotelAddress: "#234 street, Bangalore",
+    firstName: "",
+    lastName: "",
+    address: "",
+    checkIn: utils.getDate(),
+    checkOut: utils.getDate(),
+    checkedInTime: "",
+    checkedOutTime: "",
+    adults: "",
+    children: 0,
+    contactNumber: "",
+    rooms: [],
+    roomCharges: "",
+    advance: "",
+    bookingDate: null,
+    status: {
+      cancel: false,
+      checkedIn: false,
+      checkedOut: false
+    }
+  });
+  const [errors, setErrors] = useState({});
+  const [openDatePicker, setOpenDatePicker] = useState({
+    checkIn: false,
+    checkOut: false
+  });
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
+  const [shouldDisable, setShouldDisable] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  async componentDidMount() {
-    const { pathname } = this.props.location;
-    if (this.props.selectedRoom !== null) {
-      if (pathname === "/booking/viewBooking") this.setViewBookingData();
-      else if (pathname === "/booking/newBooking") this.setNewBookingData();
-    } else this.props.history.replace("/");
-  }
+  useEffect(() => {
+    const { pathname } = location;
+    if (selectedRoom !== null) {
+      if (pathname === "/booking/viewBooking") setViewBookingData();
+      else if (pathname === "/booking/newBooking") setNewBookingData();
+    } else history.replace("/");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  setViewBookingData = () => {
-    const { selectedBooking } = this.props;
-    const availableRooms = selectedBooking.rooms;
+  const setViewBookingData = () => {
     const booking = { ...selectedBooking };
-
-    this.setState({
-      data: booking,
-      disable: true,
-      availableRooms,
-      shouldDisable: !this.state.isEdit,
-      startDate: booking.checkIn,
-      endDate: booking.checkOut
-    });
+    setData(booking);
+    setShouldDisable(!isEdit);
+    setAvailableRooms(booking.rooms);
+    setStartDate(booking.checkIn);
+    setEndDate(booking.checkOut);
   };
 
-  setNewBookingData = async () => {
-    const { selectedRoom, selectedDate } = this.props;
-    const data = { ...this.state.data };
+  const setNewBookingData = async () => {
+    const newData = { ...data };
     const { roomNumber, roomType, _id } = selectedRoom;
     const room = { roomNumber, roomType, _id };
-    data.rooms.push(room);
-    data.checkIn = selectedDate;
-    data.checkOut = selectedDate;
+    newData.rooms.push(room);
+    newData.checkIn = selectedDate;
+    newData.checkOut = selectedDate;
 
-    const availableRooms = await this.getAvailableRooms(
-      data.checkIn,
-      data.checkOut
+    const availableRooms = await getAvailableRooms(
+      newData.checkIn,
+      newData.checkOut
     );
-    availableRooms && console.log(availableRooms.length);
-    this.setState({ data, availableRooms });
+    setData(newData);
+    setAvailableRooms(availableRooms);
   };
 
-  getAvailableRooms = async (checkIn, checkOut, bookingId) => {
+  const getAvailableRooms = async (checkIn, checkOut, bookingId) => {
     return await roomService.getAvailableRooms(checkIn, checkOut, bookingId);
   };
 
-  getUpdatedRooms = (availableRooms, rooms) => {
-    const roomsIndex = this.getIndexesToRemoveRoomsFromState(
-      availableRooms,
-      rooms
-    );
+  const getUpdatedRooms = (availableRooms, rooms) => {
+    const roomsIndex = getIndexesToRemoveRoomsFromState(availableRooms, rooms);
     roomsIndex.forEach(index => {
       rooms[index] = availableRooms.find(
         r => r.roomType === rooms[index].roomType
@@ -119,7 +116,7 @@ class BookingFormLayout extends Component {
     return rooms;
   };
 
-  getIndexesToRemoveRoomsFromState = (availableRooms, rooms) => {
+  const getIndexesToRemoveRoomsFromState = (availableRooms, rooms) => {
     const roomsIndex = [];
     const r = rooms.filter(room => {
       let a = availableRooms.findIndex(
@@ -138,229 +135,216 @@ class BookingFormLayout extends Component {
     return roomsIndex;
   };
 
-  createBooking = async bookingData => {
+  const createBooking = async bookingData => {
     const { status } = await bookingService.addBooking(bookingData);
-    this.setState({ loading: false });
-    if (status === 200) this.openSnackBar("Booking Successfull", success, "/");
-    else this.openSnackBar("Error Occurred", error);
+    setLoading(false);
+    if (status === 200) openSnackBar("Booking Successfull", success, "/");
+    else openSnackBar("Error Occurred", error);
   };
 
-  updateBooking = async (
+  const updateBooking = async (
     bookingData,
     message = "Booking Updated Successfully"
   ) => {
     const { status } = await bookingService.updateBooking(bookingData);
-    this.setState({ loading: false });
-    if (status === 200) this.openSnackBar(message, success, "/");
-    else this.openSnackBar("Error Occurred", error);
+    setLoading(false);
+    if (status === 200) openSnackBar(message, success, "/");
+    else openSnackBar("Error Occurred", error);
   };
 
-  checkForErrors = () => {
-    let errors = FormUtils.validate(this.state.data, schema);
+  const checkForErrors = () => {
+    let errors = FormUtils.validate(data, schema);
     errors = errors || {};
-    this.setState({ errors });
+    setErrors(errors);
     return Object.keys(errors).length;
   };
 
-  openSnackBar = (message, variant, redirectTo) => {
+  const openSnackBar = (message, variant, redirectTo) => {
     const snakbarObj = { open: true, message, variant, resetBookings: false };
-    this.props.onSnackbarEvent(snakbarObj);
-    redirectTo && this.props.history.push(redirectTo);
+    onSnackbarEvent(snakbarObj);
+    redirectTo && history.push(redirectTo);
   };
 
-  handleInputChange = ({ currentTarget: input }) => {
-    const { data, errors } = this.state;
+  const handleInputChange = ({ currentTarget: input }) => {
     const updatedState = FormUtils.handleInputChange(
       input,
       data,
       errors,
       schema
     );
-    this.setState({ data: updatedState.data, errors: updatedState.errors });
+    setData(updatedState.data);
+    setErrors(updatedState.errors);
   };
 
-  handleDatePickerChange = async (event, id) => {
-    const data = { ...this.state.data };
-    let rooms = [...data.rooms];
-    data[id] = utils.getDate(event);
-    const openDatePicker = { ...this.state.openDatePicker };
-    openDatePicker[id] = false;
+  const handleDatePickerChange = async (event, id) => {
+    const updatedData = { ...data };
+    let updatedRooms = [...updatedData.rooms];
+    updatedData[id] = utils.getDate(event);
+    const newOpenDatePicker = { ...openDatePicker };
+    newOpenDatePicker[id] = false;
     if (id === "checkIn") data["checkOut"] = data[id];
 
-    let availableRooms = await this.getAvailableRooms(
-      data.checkIn,
-      data.checkOut,
-      data._id
+    let availableRooms = await getAvailableRooms(
+      updatedData.checkIn,
+      updatedData.checkOut,
+      updatedData._id
     );
 
     if (
-      utils.getFormattedDate(data.checkIn) ===
-        utils.getFormattedDate(this.state.startDate) &&
-      utils.getFormattedDate(data.checkOut) ===
-        utils.getFormattedDate(this.state.endDate)
+      utils.getFormattedDate(updatedData.checkIn) ===
+        utils.getFormattedDate(startDate) &&
+      utils.getFormattedDate(updatedData.checkOut) ===
+        utils.getFormattedDate(endDate)
     ) {
-      availableRooms = [...availableRooms, ...this.props.selectedBooking.rooms];
+      availableRooms = [...availableRooms, ...selectedBooking.rooms];
     }
 
-    data.rooms = this.getUpdatedRooms(availableRooms, rooms);
+    updatedData.rooms = getUpdatedRooms(availableRooms, updatedRooms);
 
     setTimeout(() => {
-      this.setState({ data, availableRooms, openDatePicker });
+      setData(updatedData);
+      setAvailableRooms(availableRooms);
+      setOpenDatePicker(newOpenDatePicker);
     }, 10);
   };
 
-  handleDatePicker = id => {
-    const openDatePicker = { ...this.state.openDatePicker };
-    openDatePicker[id] = true;
-    this.setState({ openDatePicker });
+  const handleDatePicker = id => {
+    setOpenDatePicker({ ...openDatePicker, [id]: true });
   };
 
-  handleSelectChange = (event, index) => {
-    let errors = { ...this.state.errors };
-    if (errors.rooms)
-      errors.rooms = errors.rooms.filter(error => error.index !== index);
+  const handleSelectChange = (event, index) => {
+    let newErrors = { ...errors };
+    if (newErrors.rooms)
+      newErrors.rooms = newErrors.rooms.filter(error => error.index !== index);
 
     const { name, value } = event.target;
-    const data = { ...this.state.data };
     const rooms = [...data.rooms];
     let room = {};
 
     if (name === "roomType")
-      room = this.state.availableRooms.find(room => room.roomType === value);
+      room = availableRooms.find(room => room.roomType === value);
     else if (name === "roomNumber")
-      room = this.state.availableRooms.find(room => room.roomNumber === value);
+      room = availableRooms.find(room => room.roomNumber === value);
 
     rooms[index] = {
       roomNumber: room.roomNumber,
       roomType: room.roomType,
       _id: room._id
     };
-    data.rooms = rooms;
-    this.setState({ data, errors });
+    setData({ ...data, rooms });
+    setErrors(newErrors);
   };
 
-  handleFormSubmit = event => {
+  const handleFormSubmit = event => {
     event.preventDefault();
-    const data = this.state.data;
-    const errors = this.checkForErrors();
+    const errors = checkForErrors();
     if (errors) return;
 
-    this.setState({ loading: true });
+    setLoading(true);
     let bookingData = {
       ...data,
       balance: data.roomCharges - data.advance
     };
-    if (!this.state.isEdit) {
+    if (!isEdit) {
       bookingData["bookingDate"] = utils.getDate();
-      this.createBooking(bookingData);
+      createBooking(bookingData);
     } else {
-      this.updateBooking(bookingData);
+      updateBooking(bookingData);
     }
   };
 
-  handleAddRoom = () => {
-    const data = { ...this.state.data };
+  const handleAddRoom = () => {
     const rooms = [...data.rooms];
     rooms.push({
       roomNumber: "",
       roomType: "",
       _id: ""
     });
-    data.rooms = rooms;
-
-    this.setState({ data });
+    setData({ ...data, rooms });
   };
 
-  handleDeleteRoom = index => {
-    const data = { ...this.state.data };
+  const handleDeleteRoom = index => {
+    let newErrors = { ...errors };
+    if (newErrors.rooms)
+      newErrors.rooms = newErrors.rooms.filter(error => error.index !== index);
+    if (newErrors.rooms.length === 0) delete newErrors.rooms;
+
     let rooms = [...data.rooms];
-
     rooms = rooms.filter((room, i) => i !== index);
-    data.rooms = rooms;
-
-    this.setState({ data });
+    setData({ ...data, rooms });
+    setErrors(newErrors);
   };
 
-  handleBack = () => {
-    this.props.history.push("/");
+  const handleBack = () => {
+    history.push("/");
   };
 
-  handleEdit = () => {
-    this.setState({ isEdit: true, shouldDisable: false });
+  const handleEdit = () => {
+    setIsEdit(true);
+    setShouldDisable(false);
   };
 
-  handleCancel = () => {
-    const data = { ...this.state.data };
-    data.status = { ...data.status, cancel: true };
-    this.setState({ data, loading: true });
-    this.updateBooking(data, "Booking Cancelled Successfully");
+  const handleCancel = () => {
+    const updatedData = { ...data };
+    updatedData.status = { ...updatedData.status, cancel: true };
+    setData(updatedData);
+    setLoading(true);
+    updateBooking(data, "Booking Cancelled Successfully");
   };
 
-  handleCheckIn = () => {
-    const data = { ...this.state.data };
-    data.checkedInTime = utils.getTime();
-    data.status = { ...data.status, checkedIn: true };
-    this.setState({ data, loading: true });
-    this.updateBooking(data, "Checked In Successfully");
+  const handleCheckIn = () => {
+    const updatedData = { ...data };
+    updatedData.checkedInTime = utils.getTime();
+    updatedData.status = { ...updatedData.status, checkedIn: true };
+    setData(updatedData);
+    setLoading(true);
+    updateBooking(data, "Checked In Successfully");
   };
 
-  handleCheckOut = () => {
-    this.props.onCheckOutRedirect(this.state.data);
+  const handleCheckOut = () => {
+    onCheckOutRedirect(data);
   };
 
-  render() {
-    const {
-      data,
-      availableRooms,
-      errors,
-      shouldDisable,
-      loading,
-      openDatePicker
-    } = this.state;
-
-    const cardContent = (
-      <BookingForm
-        onDatePickerChange={this.handleDatePickerChange}
-        onInputChange={this.handleInputChange}
-        onSelectChange={this.handleSelectChange}
-        onFormSubmit={this.handleFormSubmit}
-        onAddRoom={this.handleAddRoom}
-        onDeleteRoom={this.handleDeleteRoom}
-        data={data}
-        availableRooms={availableRooms}
-        errors={errors}
-        options={roomTypes}
-        shouldDisable={shouldDisable}
-        onBack={this.handleBack}
-        openDatePicker={openDatePicker}
-        handleDatePicker={this.handleDatePicker}
-      />
-    );
-
-    return (
-      <React.Fragment>
-        {loading && <LoaderDialog open={loading} />}
-        <div className="cardContainer">
-          <Card
-            header={
-              <BookingFormHeader
-                status={data.status}
-                checkIn={data.checkIn}
-                checkOut={data.checkOut}
-                onEdit={this.handleEdit}
-                onCancel={this.handleCancel}
-                onCheckIn={this.handleCheckIn}
-                onCheckOut={this.handleCheckOut}
-              />
-            }
-            content={cardContent}
-            maxWidth={700}
-            margin="40px auto"
-          />
-        </div>
-      </React.Fragment>
-    );
-  }
-}
+  return (
+    <React.Fragment>
+      {loading && <LoaderDialog open={loading} />}
+      <div className="cardContainer">
+        <Card
+          header={
+            <BookingFormHeader
+              status={data.status}
+              checkIn={data.checkIn}
+              checkOut={data.checkOut}
+              onEdit={handleEdit}
+              onCancel={handleCancel}
+              onCheckIn={handleCheckIn}
+              onCheckOut={handleCheckOut}
+            />
+          }
+          content={
+            <BookingForm
+              onDatePickerChange={handleDatePickerChange}
+              onInputChange={handleInputChange}
+              onSelectChange={handleSelectChange}
+              onFormSubmit={handleFormSubmit}
+              onAddRoom={handleAddRoom}
+              onDeleteRoom={handleDeleteRoom}
+              data={data}
+              availableRooms={availableRooms}
+              errors={errors}
+              options={roomTypes}
+              shouldDisable={shouldDisable}
+              onBack={handleBack}
+              openDatePicker={openDatePicker}
+              handleDatePicker={handleDatePicker}
+            />
+          }
+          maxWidth={700}
+          margin="40px auto"
+        />
+      </div>
+    </React.Fragment>
+  );
+};
 
 export default BookingFormLayout;

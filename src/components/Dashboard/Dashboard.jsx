@@ -44,9 +44,9 @@ const Dashboard = props => {
     resetBookings: false
   });
 
-  const [selectedBooking, setSelectedBooking] = useState({});
-  const [selectedRoom, setSelectedRoom] = useState({});
-  const [selectedDate, setSelectedDate] = useState();
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     const getRooms = async () => {
