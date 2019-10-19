@@ -21,6 +21,7 @@ class POSForm extends Component {
       amount: "",
       remarks: ""
     },
+    datePickerOpen: false,
     posData: [],
     bookingOptions: [],
     errors: {},
@@ -67,7 +68,8 @@ class POSForm extends Component {
       onChange: this.handleDatePickerChange,
       error: this.state.errors[id],
       minDate,
-      disabled: shouldDisable
+      disabled: shouldDisable,
+      open: this.state.datePickerOpen
     };
   };
 
@@ -90,9 +92,14 @@ class POSForm extends Component {
   };
 
   handleDatePickerChange = event => {
+    console.log("onChange");
     const data = { ...this.state.data };
     data.date = utils.getDate(event);
-    this.setState({ data });
+    this.setState({ data, datePickerOpen: false });
+  };
+
+  handleDatePicker = () => {
+    this.setState({ datePickerOpen: true });
   };
 
   setBookingOptions = ({ target: input }) => {
@@ -198,7 +205,7 @@ class POSForm extends Component {
               disabled: shouldDisable
             })}
           </div>
-          <div className="form-group">
+          <div className="form-group" onClick={this.handleDatePicker}>
             {FormUtils.renderDatepicker(
               this.getDateArgObj(
                 "date",
