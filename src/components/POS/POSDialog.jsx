@@ -12,7 +12,7 @@ const POSDialog = ({ allBookings, onClose, title, onSnackbarEvent }) => {
         allBookings={allBookings}
         onClose={onClose}
         title={title}
-        onSnackbarEvent={onSnackbarEvent}
+        // onSnackbarEvent={onSnackbarEvent}
       />
     </React.Fragment>
   );

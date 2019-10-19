@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import SnackBarContext from "./../../context/snackBarContext";
 import { DialogActions, DialogContent, Button } from "@material-ui/core";
 
 import bookingService from "../../services/bookingService";
@@ -27,6 +28,8 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
   const [bookingOptions, setBookingOptions] = useState([]);
   const [roomOptions, setRoomOptions] = useState([]);
   const [disable] = useState(false);
+
+  const handleSnackbarEvent = useContext(SnackBarContext);
 
   useEffect(() => {
     let POSData = [];
@@ -169,7 +172,7 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
 
   const openSnackBar = (message, variant) => {
     const snakbarObj = { open: true, message, variant, resetBookings: true };
-    onSnackbarEvent(snakbarObj);
+    handleSnackbarEvent(snakbarObj);
   };
 
   return (
