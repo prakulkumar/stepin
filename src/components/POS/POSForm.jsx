@@ -21,6 +21,7 @@ class POSForm extends Component {
       amount: "",
       remarks: ""
     },
+    minDate: utils.getDate(),
     posData: [],
     bookingOptions: [],
     errors: {},
@@ -123,8 +124,9 @@ class POSForm extends Component {
       item => item.booking.bookingId === data.bookingId
     );
 
-    data.date = utils.getDate(filteredObj.booking.checkIn);
-    this.setState({ data, errors });
+    const minDate = utils.getDate(filteredObj.booking.checkIn);
+    data.date = minDate;
+    this.setState({ data, minDate, errors });
   };
 
   checkForErrors = () => {
@@ -203,7 +205,7 @@ class POSForm extends Component {
                 "date",
                 "Date",
                 "text",
-                this.state.data.date,
+                this.state.minDate,
                 shouldDisable
               )
             )}
