@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Switch, Redirect } from "react-router-dom";
 
 import Calendar from "./../Calendar/Calendar";
@@ -17,220 +17,218 @@ import utils from "../../utils/utils";
 import constants from "../../utils/constants";
 import "./Dashboard.scss";
 
-class Dashboard extends Component {
-  state = {
-    currentDate: utils.getDate(),
-    currentDateObj: utils.getDateObj(utils.getDate()),
-    selectedBooking: null,
-    allBookings: [],
-    allRooms: [],
-    selectedRoom: null,
-    selectedDate: utils.getDate(),
-    posDialogTitle: "",
-    loading: false,
-    snackbarObj: {
-      open: false,
-      message: "",
-      variant: constants.snackbarVariants.success,
-      resetBookings: false
-    },
-    dialog: {
-      open: false,
-      contentOf: "",
-      size: "sm",
-      openFor: {
-        taxes: false,
-        pos: false
-      }
+const Dashboard = props => {
+  const [allRooms, setAllRooms] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(utils.getDate());
+  const [currentDateObj, setCurrentDateObj] = useState(
+    utils.getDateObj(utils.getDate())
+  );
+
+  const [posDialogTitle, setPosDialogTitle] = useState("");
+  const [dialog, setDialog] = useState({
+    open: false,
+    contentOf: "",
+    size: "sm",
+    openFor: {
+      taxes: false,
+      pos: false
+    }
+  });
+
+  const [snackbarObj, setSnackbarObj] = useState({
+    open: false,
+    message: "",
+    variant: constants.snackbarVariants.success,
+    resetBookings: false
+  });
+
+  const [selectedBooking, setSelectedBooking] = useState({});
+  const [selectedRoom, setSelectedRoom] = useState({});
+  const [selectedDate, setSelectedDate] = useState();
+
+  useEffect(() => {
+    const getRooms = async () => {
+      const allRooms = await roomService.getRooms();
+      allRooms.length > 0 && setAllRooms(allRooms);
+    };
+
+    getRooms();
+  }, []);
+
+  const setBookings = async dateObj => {
+    const allBookings = await bookingService.getBookings(dateObj);
+    if (allBookings.length > 0) {
+      setAllBookings(allBookings);
+      setLoading(false);
     }
   };
 
-  async componentDidMount() {
-    const allRooms = await roomService.getRooms();
-    this.setState({ allRooms });
-  }
-
-  setBookings = async dateObj => {
-    const allBookings = await bookingService.getBookings(dateObj);
-    this.setState({ allBookings, loading: false });
+  const setDateObj = (dateObj, date) => {
+    setCurrentDateObj(dateObj);
+    setCurrentDate(date);
   };
 
-  setDateObj = (dateObj, date) => {
-    this.setState({ currentDateObj: dateObj, currentDate: date });
+  const handleLoading = value => {
+    setLoading(value);
   };
 
-  handleDialog = (showFor, size) => {
-    const dialog = { ...this.state.dialog };
-    const openFor = { ...dialog.openFor };
+  const handleRefresh = () => {
+    setLoading(true);
+    setBookings(currentDateObj);
+  };
+
+  const handleShowTaxes = () => {
+    handleDialog("taxes");
+  };
+
+  const handleDialog = (showFor, size) => {
+    const newDialogObj = { ...dialog };
+    const openFor = { ...newDialogObj.openFor };
     openFor[showFor] = !openFor[showFor];
-    dialog.open = !dialog.open;
-    dialog.contentOf = showFor;
-    dialog.size = size || "sm";
-    dialog.openFor = openFor;
-    this.setState({ dialog });
+    newDialogObj.open = !newDialogObj.open;
+    newDialogObj.contentOf = showFor;
+    newDialogObj.size = size || "sm";
+    newDialogObj.openFor = openFor;
+    setDialog(newDialogObj);
   };
 
-  handleShowTaxes = () => {
-    this.handleDialog("taxes");
+  const handleShowPOSDialog = title => {
+    setPosDialogTitle(title);
+    handleDialog("pos");
   };
 
-  handleShowPOSDialog = title => {
-    this.setState({ posDialogTitle: title });
-    this.handleDialog("pos");
+  const handleRedirectFromNavbar = () => {
+    props.history.replace("/");
   };
 
-  handleRefresh = () => {
-    this.setState({ loading: true });
-    this.setBookings(this.state.currentDateObj);
+  const handleSnackbarEvent = snackbarObj => {
+    setSnackbarObj(snackbarObj);
+    setLoading(true);
+    snackbarObj.resetBookings && setBookings(currentDateObj);
   };
 
-  handleRedirectFromNavbar = () => {
-    this.props.history.replace("/");
+  const handleSnackBar = () => {
+    const newSnackbarObj = { ...snackbarObj };
+    newSnackbarObj.open = false;
+
+    setSnackbarObj(newSnackbarObj);
   };
 
-  handleFormRedirect = (bookingObj, roomObj, selectedDate) => {
+  const handleCheckOutRedirect = bookingObj => {
+    const selectedBooking = bookingObj && { ...bookingObj };
+    setSelectedBooking(selectedBooking);
+    props.history.push("/billing");
+  };
+
+  const handleRedirectFromBilling = bookingObj => {
+    const selectedBooking = bookingObj && { ...bookingObj };
+    setSelectedBooking(selectedBooking);
+    props.history.push("/report");
+  };
+
+  const handleFormRedirect = (bookingObj, roomObj, selectedDate) => {
     const selectedBooking = bookingObj && { ...bookingObj };
     const selectedRoom = { ...roomObj };
-    this.setState({ selectedBooking, selectedRoom, selectedDate });
+    setSelectedBooking(selectedBooking);
+    setSelectedRoom(selectedRoom);
+    setSelectedDate(selectedDate);
 
     if (bookingObj) {
-      if (bookingObj.status.checkedOut) this.props.history.push("/report");
-      else this.props.history.push("/booking/viewBooking");
-    } else this.props.history.push("/booking/newBooking");
+      if (bookingObj.status.checkedOut) props.history.push("/report");
+      else props.history.push("/booking/viewBooking");
+    } else props.history.push("/booking/newBooking");
   };
 
-  handleCheckOutRedirect = bookingObj => {
-    const selectedBooking = bookingObj && { ...bookingObj };
-    this.setState({ selectedBooking });
-    this.props.history.push("/billing");
-  };
+  return (
+    <div className="mainContainer">
+      <Snackbar
+        open={snackbarObj.open}
+        message={snackbarObj.message}
+        onClose={handleSnackBar}
+        variant={snackbarObj.variant}
+      />
+      <Navbar
+        onRefresh={handleRefresh}
+        showTaxes={handleShowTaxes}
+        showPOSDialog={handleShowPOSDialog}
+        path={props.location.pathname}
+        onRedirectFromNavbar={handleRedirectFromNavbar}
+      />
+      <Dialog
+        open={dialog.open}
+        onClose={() => handleDialog(dialog.contentOf)}
+        size={dialog.size}
+      >
+        {dialog.openFor.taxes && (
+          <Taxes onClose={() => handleDialog(dialog.contentOf)} />
+        )}
+        {dialog.openFor.pos && (
+          <POSDialog
+            allBookings={allBookings}
+            title={posDialogTitle}
+            onClose={() => handleDialog(dialog.contentOf)}
+            onSnackbarEvent={handleSnackbarEvent}
+          />
+        )}
+      </Dialog>
 
-  handleRedirectFromBilling = bookingObj => {
-    const selectedBooking = bookingObj && { ...bookingObj };
-    this.setState({ selectedBooking });
-    this.props.history.push("/report");
-  };
-
-  handleLoading = value => {
-    this.setState({ loading: value });
-  };
-
-  handleSnackbarEvent = snackbarObj => {
-    this.setState({ snackbarObj, loading: true });
-    snackbarObj.resetBookings && this.setBookings(this.state.currentDateObj);
-  };
-
-  handleSnackBar = () => {
-    const snackbarObj = { ...this.state.snackbarObj };
-    snackbarObj.open = false;
-
-    this.setState({ snackbarObj });
-  };
-
-  render() {
-    const {
-      currentDate,
-      currentDateObj,
-      snackbarObj,
-      selectedBooking,
-      selectedRoom,
-      selectedDate,
-      allRooms,
-      allBookings,
-      dialog,
-      posDialogTitle,
-      loading
-    } = this.state;
-
-    return (
-      <div className="mainContainer">
-        <Snackbar
-          open={snackbarObj.open}
-          message={snackbarObj.message}
-          onClose={this.handleSnackBar}
-          variant={snackbarObj.variant}
-        />
-        <Navbar
-          onRefresh={this.handleRefresh}
-          showTaxes={this.handleShowTaxes}
-          showPOSDialog={this.handleShowPOSDialog}
-          path={this.props.location.pathname}
-          onRedirectFromNavbar={this.handleRedirectFromNavbar}
-        />
-        <Dialog
-          open={dialog.open}
-          onClose={() => this.handleDialog(dialog.contentOf)}
-          size={dialog.size}
-        >
-          {dialog.openFor.taxes && (
-            <Taxes onClose={() => this.handleDialog(dialog.contentOf)} />
-          )}
-          {dialog.openFor.pos && (
-            <POSDialog
-              allBookings={allBookings}
-              title={posDialogTitle}
-              onClose={() => this.handleDialog(dialog.contentOf)}
-              onSnackbarEvent={this.handleSnackbarEvent}
-            />
-          )}
-        </Dialog>
-
-        <div className="subContainer">
-          <Switch>
-            <Route
-              path={["/booking/newBooking", "/booking/viewBooking"]}
-              render={props => (
-                <BookingFormLayout
-                  onSnackbarEvent={this.handleSnackbarEvent}
-                  selectedBooking={selectedBooking}
-                  selectedRoom={selectedRoom}
-                  selectedDate={selectedDate}
-                  onCheckOutRedirect={this.handleCheckOutRedirect}
-                  {...props}
-                />
-              )}
-            />
-            <Route
-              path="/billing"
-              render={props => (
-                <BillingFormLayout
-                  onSnackbarEvent={this.handleSnackbarEvent}
-                  selectedBooking={selectedBooking}
-                  onRedirectFromBilling={this.handleRedirectFromBilling}
-                  {...props}
-                />
-              )}
-            />
-            <Route
-              path="/report"
-              render={props => (
-                <Report selectedBooking={selectedBooking} {...props} />
-              )}
-            />
-            <Route
-              path="/"
-              exact
-              render={props => (
-                <Calendar
-                  currentDate={currentDate}
-                  currentDateObj={currentDateObj}
-                  onFormRedirect={this.handleFormRedirect}
-                  allRooms={allRooms}
-                  allBookings={allBookings}
-                  loading={loading}
-                  onLoading={this.handleLoading}
-                  setBookings={this.setBookings}
-                  setDateObj={this.setDateObj}
-                  {...props}
-                />
-              )}
-            />
-            <Redirect to="/" />
-          </Switch>
-        </div>
+      <div className="subContainer">
+        <Switch>
+          <Route
+            path={["/booking/newBooking", "/booking/viewBooking"]}
+            render={props => (
+              <BookingFormLayout
+                onSnackbarEvent={handleSnackbarEvent}
+                selectedBooking={selectedBooking}
+                selectedRoom={selectedRoom}
+                selectedDate={selectedDate}
+                onCheckOutRedirect={handleCheckOutRedirect}
+                {...props}
+              />
+            )}
+          />
+          <Route
+            path="/billing"
+            render={props => (
+              <BillingFormLayout
+                onSnackbarEvent={handleSnackbarEvent}
+                selectedBooking={selectedBooking}
+                onRedirectFromBilling={handleRedirectFromBilling}
+                {...props}
+              />
+            )}
+          />
+          <Route
+            path="/report"
+            render={props => (
+              <Report selectedBooking={selectedBooking} {...props} />
+            )}
+          />
+          <Route
+            path="/"
+            exact
+            render={props => (
+              <Calendar
+                allRooms={allRooms}
+                currentDate={currentDate}
+                currentDateObj={currentDateObj}
+                onFormRedirect={handleFormRedirect}
+                allBookings={allBookings}
+                loading={loading}
+                onLoading={handleLoading}
+                setBookings={setBookings}
+                setDateObj={setDateObj}
+                {...props}
+              />
+            )}
+          />
+          <Redirect to="/" />
+        </Switch>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default Dashboard;

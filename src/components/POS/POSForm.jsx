@@ -207,16 +207,18 @@ class POSForm extends Component {
               disabled: shouldDisable
             })}
           </div>
-          <div className="form-group" onClick={this.handleDatePicker}>
-            {FormUtils.renderDatepicker(
-              this.getDateArgObj(
-                "date",
-                "Date",
-                "text",
-                this.state.minDate,
-                shouldDisable
-              )
-            )}
+          <div className="form-group">
+            <div style={{ width: "100%" }} onClick={this.handleDatePicker}>
+              {FormUtils.renderDatepicker(
+                this.getDateArgObj(
+                  "date",
+                  "Date",
+                  "text",
+                  this.state.minDate,
+                  shouldDisable
+                )
+              )}
+            </div>
             {FormUtils.renderInput(
               this.getInputArgObj("amount", "Amount", "text", shouldDisable)
             )}
