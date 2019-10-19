@@ -16,9 +16,10 @@ import taxService from "../../services/taxService";
 const { success, error } = constants.snackbarVariants;
 
 const schema = schemas.billingFormSchema;
-const handleSnackbarEvent = useContext(SnackBarContext);
 
 const BillingFormLayout = props => {
+  const handleSnackbarEvent = useContext(SnackBarContext);
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState();
 
