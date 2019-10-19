@@ -21,7 +21,8 @@ class POSForm extends Component {
       amount: "",
       remarks: ""
     },
-    datePickerOpen: false,
+    openDatePicker: false,
+    minDate: utils.getDate(),
     posData: [],
     bookingOptions: [],
     errors: {},
@@ -69,7 +70,7 @@ class POSForm extends Component {
       error: this.state.errors[id],
       minDate,
       disabled: shouldDisable,
-      open: this.state.datePickerOpen
+      open: this.state.openDatePicker
     };
   };
 
@@ -92,14 +93,15 @@ class POSForm extends Component {
   };
 
   handleDatePickerChange = event => {
-    console.log("onChange");
     const data = { ...this.state.data };
     data.date = utils.getDate(event);
-    this.setState({ data, datePickerOpen: false });
+    setTimeout(() => {
+      this.setState({ data, openDatePicker: false });
+    }, 10);
   };
 
   handleDatePicker = () => {
-    this.setState({ datePickerOpen: true });
+    this.setState({ openDatePicker: true });
   };
 
   setBookingOptions = ({ target: input }) => {
@@ -130,8 +132,9 @@ class POSForm extends Component {
       item => item.booking.bookingId === data.bookingId
     );
 
-    data.date = utils.getDate(filteredObj.booking.checkIn);
-    this.setState({ data, errors });
+    const minDate = utils.getDate(filteredObj.booking.checkIn);
+    data.date = minDate;
+    this.setState({ data, minDate, errors });
   };
 
   checkForErrors = () => {
@@ -166,15 +169,14 @@ class POSForm extends Component {
 
     const response = await bookingService.updateBooking(booking);
     if (response.status === 200)
-      this.openSnackBar("Updated Successfully", success, "/");
+      this.openSnackBar("Updated Successfully", success);
     else this.openSnackBar("Error Occurred", error);
     onClose();
   };
 
-  openSnackBar = (message, variant, redirectTo) => {
-    const snakbarObj = { open: true, message, variant };
+  openSnackBar = (message, variant) => {
+    const snakbarObj = { open: true, message, variant, resetBookings: true };
     this.props.onSnackbarEvent(snakbarObj);
-    //redirectTo && this.props.history.push(redirectTo);
   };
 
   render() {
@@ -211,7 +213,7 @@ class POSForm extends Component {
                 "date",
                 "Date",
                 "text",
-                this.state.data.date,
+                this.state.minDate,
                 shouldDisable
               )
             )}

@@ -48,6 +48,10 @@ class BookingFormLayout extends Component {
         checkedOut: false
       }
     },
+    openDatePicker: {
+      checkIn: false,
+      checkOut: false
+    },
     errors: {},
     availableRooms: [],
     startDate: null,
@@ -159,7 +163,7 @@ class BookingFormLayout extends Component {
   };
 
   openSnackBar = (message, variant, redirectTo) => {
-    const snakbarObj = { open: true, message, variant };
+    const snakbarObj = { open: true, message, variant, resetBookings: false };
     this.props.onSnackbarEvent(snakbarObj);
     redirectTo && this.props.history.push(redirectTo);
   };
@@ -179,6 +183,8 @@ class BookingFormLayout extends Component {
     const data = { ...this.state.data };
     let rooms = [...data.rooms];
     data[id] = utils.getDate(event);
+    const openDatePicker = { ...this.state.openDatePicker };
+    openDatePicker[id] = false;
     if (id === "checkIn") data["checkOut"] = data[id];
 
     let availableRooms = await this.getAvailableRooms(
@@ -197,7 +203,16 @@ class BookingFormLayout extends Component {
     }
 
     data.rooms = this.getUpdatedRooms(availableRooms, rooms);
-    this.setState({ data, availableRooms });
+
+    setTimeout(() => {
+      this.setState({ data, availableRooms, openDatePicker });
+    }, 10);
+  };
+
+  handleDatePicker = id => {
+    const openDatePicker = { ...this.state.openDatePicker };
+    openDatePicker[id] = true;
+    this.setState({ openDatePicker });
   };
 
   handleSelectChange = (event, index) => {
@@ -294,7 +309,14 @@ class BookingFormLayout extends Component {
   };
 
   render() {
-    const { data, availableRooms, errors, shouldDisable, loading } = this.state;
+    const {
+      data,
+      availableRooms,
+      errors,
+      shouldDisable,
+      loading,
+      openDatePicker
+    } = this.state;
 
     const cardContent = (
       <BookingForm
@@ -310,6 +332,8 @@ class BookingFormLayout extends Component {
         options={roomTypes}
         shouldDisable={shouldDisable}
         onBack={this.handleBack}
+        openDatePicker={openDatePicker}
+        handleDatePicker={this.handleDatePicker}
       />
     );
 
