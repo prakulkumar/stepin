@@ -21,7 +21,7 @@ const BillingFormLayout = props => {
   const handleSnackbarEvent = useContext(SnackBarContext);
 
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState();
+  const [errors, setErrors] = useState({});
 
   const [selectedBooking, setSelectedBooking] = useState({});
   const [taxSlabs, setTaxSlabs] = useState();
