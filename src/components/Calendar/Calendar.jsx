@@ -1,83 +1,62 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import CalendarHeader from "./CalendarHeader";
 import CalendarBody from "./CalendarBody";
+// import Dialog from "./../../common/Dialog/Dialog";
 import utils from "./../../utils/utils";
 import moment from "moment";
-import bookingService from "../../services/bookingService";
+
 import "./Calendar.scss";
-import Dialog from "./../../common/Dialog/Dialog";
 
-class Calendar extends Component {
-  state = {
-    title: "",
-    dateObj: {},
-    bookings: [],
-    rows: [],
-    showModal: false,
-    loading: false,
-    callCount: 0
-  };
+const Calendar = props => {
+  const {
+    allBookings,
+    allRooms,
+    loading,
+    currentDateObj: dateObj,
+    currentDate
+  } = props;
 
-  constructor(props) {
-    super(props);
+  const [title, setTitle] = useState("");
+  const [rows, setRows] = useState([]);
+  let tempRows = [];
 
-    const date = props.currentDate;
-    const dateObj = utils.getDateObj(date);
-    const title = this.getTitle(date);
+  useEffect(() => {
+    const title = getTitle(currentDate);
+    setTitle(title);
+    props.onLoading(true);
+    props.setBookings(dateObj);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    this.state.title = title;
-    this.state.dateObj = dateObj;
-    this.state.loading = true;
-  }
+  useEffect(() => {
+    if (allBookings.length > 0) showBookings(dateObj, allBookings, allRooms);
 
-  componentDidMount() {
-    if (this.props.allRooms.length > 0) {
-      const rows = this.getTableRows(this.props.allRooms, this.state.dateObj);
-      this.setState({ rows, callCount: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allBookings]);
 
-      this.showBookingProcess(this.state.dateObj);
-    }
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    if (nextProps.allRooms.length > 0 && nextState.callCount === 0) {
-      const rows = this.getTableRows(nextProps.allRooms, nextState.dateObj);
-      this.setState({ rows, callCount: 1 });
-
-      this.showBookingProcess(nextState.dateObj);
+  useEffect(() => {
+    if (allRooms.length > 0) {
+      const rows = getTableRows(allRooms, dateObj);
+      setRows(rows);
     }
 
-    // if (nextProps.isRefresh && nextState.callCount === 0) {
-    //   this.setState({ callCount: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allRooms, dateObj]);
 
-    //   // this.showBookingProcess(this.state.dateObj);
-    //   // nextProps.onRefresh();
-    //   // window.location.reload();
-    //   this.setState({ callCount: 0 });
-    // }
-    return true;
-  }
+  useEffect(() => {
+    const title = getTitle(currentDate);
+    setTitle(title);
+  }, [currentDate]);
 
-  showBookingProcess = async dateObj => {
-    const bookingsFromDb = await this.getBookings(dateObj);
-
-    const bookings = [...bookingsFromDb];
-
-    if (bookings) {
-      this.setState({ bookings });
-      this.showBookings(dateObj, bookings);
-    }
-  };
-
-  showBookings = (dateObj, bookings) => {
-    const allRooms = this.props.allRooms;
+  const showBookings = (dateObj, bookings, allRooms) => {
+    tempRows = getTableRows(allRooms, dateObj);
 
     bookings &&
       bookings.forEach(booking => {
         let { checkIn, checkOut, months } = booking;
         const color = utils.generateRandomColor();
         if (months.length > 1) {
-          const updatedValue = this.getUpdatedValues(booking, dateObj);
+          const updatedValue = getUpdatedValues(booking, dateObj);
           checkIn = updatedValue.checkIn;
           checkOut = updatedValue.checkOut;
         }
@@ -87,27 +66,29 @@ class Calendar extends Component {
             return room._id === bookedRoom._id;
           });
 
-          this.setBookingObjByRoom(
-            roomNumber,
-            checkIn,
-            checkOut,
-            booking,
-            color
-          );
+          setBookingObjByRoom(roomNumber, checkIn, checkOut, booking, color);
         });
       });
+
+    setRows(tempRows);
   };
 
-  setBookingObjByRoom = (roomNumber, checkIn, checkOut, booking, color) => {
-    const rowIndex = this.state.rows.findIndex(
+  const setBookingObjByRoom = (
+    roomNumber,
+    checkIn,
+    checkOut,
+    booking,
+    color
+  ) => {
+    const rowIndex = tempRows.findIndex(
       row => row[0].room.roomNumber === roomNumber
     );
     const dates = utils.daysBetweenDates(checkIn, checkOut);
-    this.updateRowObjByDate(dates, rowIndex, booking, color);
+    updateRowObjByDate(dates, rowIndex, booking, color);
   };
 
-  updateRowObjByDate = (dates, rowIndex, booking, color) => {
-    const rowsArray = [...this.state.rows];
+  const updateRowObjByDate = (dates, rowIndex, booking, color) => {
+    const rowsArray = [...tempRows];
 
     dates.forEach(date => {
       const dateNumber = moment(date).date();
@@ -119,19 +100,29 @@ class Calendar extends Component {
       };
     });
 
-    this.setState({ rows: rowsArray });
+    tempRows = [...rowsArray];
   };
 
-  getBookings = async dateObj => {
-    if (!this.state.loading) this.setState({ loading: true });
-    const bookings = await bookingService.getBookings(dateObj);
-    this.props.setAllBookings(bookings);
-    this.setState({ loading: false });
-    return bookings;
+  const getTitle = date =>
+    `${moment(date)
+      .format("MMMM")
+      .toUpperCase()} ${moment(date).year()}`;
+
+  const getTableRows = (allRooms, dateObj) => {
+    let rows = new Array(allRooms.length).fill();
+    rows.forEach((row, index) => {
+      rows[index] = new Array(dateObj.days + 1).fill({
+        room: { ...allRooms[index] },
+        handleRedirect: handleRedirect
+      });
+      rows[index][0] = { room: { ...allRooms[index] }, show: true };
+    });
+
+    return rows;
   };
 
-  getTableHeaders = () => {
-    let tableHeaders = new Array(this.state.dateObj.days + 1).fill({});
+  const getTableHeaders = () => {
+    let tableHeaders = new Array(dateObj.days + 1).fill({});
     tableHeaders = tableHeaders.map((value, index) => {
       if (index !== 0) return { date: index < 10 ? `0${index}` : `${index}` };
       else return { date: "" };
@@ -140,25 +131,7 @@ class Calendar extends Component {
     return tableHeaders;
   };
 
-  getTableRows = (allRooms, dateObj) => {
-    let rows = new Array(allRooms.length).fill();
-    rows.forEach((row, index) => {
-      rows[index] = new Array(dateObj.days + 1).fill({
-        room: { ...allRooms[index] },
-        handleRedirect: this.handleRedirect
-      });
-      rows[index][0] = { room: { ...allRooms[index] }, show: true };
-    });
-
-    return rows;
-  };
-
-  getTitle = date =>
-    `${moment(date)
-      .format("MMMM")
-      .toUpperCase()} ${moment(date).year()}`;
-
-  getUpdatedValues = (booking, dateObj) => {
+  const getUpdatedValues = (booking, dateObj) => {
     let { checkIn, checkOut, months } = booking;
     const { month, year, days } = dateObj;
     const index = months.findIndex(month => month.month === dateObj.month);
@@ -177,52 +150,42 @@ class Calendar extends Component {
     return { checkIn, checkOut };
   };
 
-  handleChange = value => {
-    const { dateObj: prevDateObj } = this.state;
-    const prevDate = new Date(prevDateObj.year, prevDateObj.month);
+  const handleRedirect = (bookingObj, roomObj, date) => {
+    props.onFormRedirect(bookingObj, roomObj, date);
+  };
+
+  const handleChange = value => {
+    const prevDate = new Date(dateObj.year, dateObj.month);
     const newDate = moment(prevDate).add(value, "M");
-    const dateObj = utils.getDateObj(newDate);
-    const title = this.getTitle(newDate);
-    const rows = this.getTableRows(this.props.allRooms, dateObj);
+    const newDateObj = utils.getDateObj(newDate);
 
-    this.setState({ title, dateObj, rows, loading: true });
-    this.showBookingProcess(dateObj);
+    props.setDateObj(newDateObj, newDate);
+    props.onLoading(true);
+    props.setBookings(newDateObj);
   };
 
-  handleRedirect = (bookingObj, roomObj, date) => {
-    this.props.onFormRedirect(bookingObj, roomObj, date);
-  };
-
-  handleCloseModal = () => {
-    this.setState({ showModal: false });
-  };
-
-  render() {
-    const { title, dateObj, rows, showModal, loading } = this.state;
-
-    return (
-      <div className="calendar__container">
-        <CalendarHeader
-          title={title}
-          onChange={this.handleChange}
-          month={dateObj.month}
+  return (
+    <div className="calendar__container">
+      <CalendarHeader
+        title={title}
+        onChange={handleChange}
+        month={dateObj.month}
+      />
+      <CalendarBody
+        tableHeaders={getTableHeaders()}
+        tableRows={rows}
+        loading={loading}
+        dateObj={dateObj}
+      />
+      {/* {showModal && (
+        <Dialog
+          openModal={this.state.showModal}
+          onCloseModal={this.handleCloseModal}
+          size="lg"
         />
-        <CalendarBody
-          tableHeaders={this.getTableHeaders()}
-          tableRows={rows}
-          loading={loading}
-          dateObj={dateObj}
-        />
-        {showModal && (
-          <Dialog
-            openModal={this.state.showModal}
-            onCloseModal={this.handleCloseModal}
-            size="lg"
-          />
-        )}
-      </div>
-    );
-  }
-}
+      )} */}
+    </div>
+  );
+};
 
 export default Calendar;

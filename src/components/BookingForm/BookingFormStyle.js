@@ -33,5 +33,10 @@ export default makeStyles(theme => ({
   },
   formTitle: {
     flexGrow: 1
+  },
+  datePicker: {
+    width: "100%",
+    marginRight: 8,
+    marginLeft: 8
   }
 }));

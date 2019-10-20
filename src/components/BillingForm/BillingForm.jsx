@@ -58,7 +58,7 @@ const BillingForm = props => {
             id: inputId,
             label: null,
             type: "number",
-            value: value,
+            value: value || "",
             onChange: () => {},
             error: null,
             disabled: true
@@ -120,7 +120,7 @@ const BillingForm = props => {
         <div>
           {renderInputItems("Room Charges", booking.roomCharges, "roomCharges")}
           {renderInputItems("Advance", booking.advance, "advance")}
-          {renderInputItems("Misllaneous", 0, "misllaneous")}
+          {renderInputItems("Misllaneous", "0", "misllaneous")}
           {renderInputItems("Balance", booking.balance, "balance")}
         </div>
         {/* <Divider className={classes.divider} /> */}

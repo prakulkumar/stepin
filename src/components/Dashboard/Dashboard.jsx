@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Switch, Redirect } from "react-router-dom";
 
 import Calendar from "./../Calendar/Calendar";
@@ -12,150 +12,166 @@ import Snackbar from "../../common/Snackbar/Snackbar";
 import Dialog from "./../../common/Dialog/Dialog";
 
 import roomService from "../../services/roomService";
-import utils from "../../utils/utils";
+import bookingService from "../../services/bookingService";
+import SnackBarContext from "./../../context/snackBarContext";
 import constants from "../../utils/constants";
+import utils from "../../utils/utils";
 import "./Dashboard.scss";
 
-class Dashboard extends Component {
-  state = {
-    currentDate: utils.getDate(),
-    isRefresh: false,
-    selectedBooking: null,
-    allBookings: [],
-    allRooms: [],
-    selectedRoom: null,
-    selectedDate: utils.getDate(),
-    posDialogTitle: "",
-    snackbarObj: {
-      open: false,
-      message: "",
-      variant: constants.snackbarVariants.success
-    },
-    dialog: {
-      open: false,
-      contentOf: "",
-      size: "sm",
-      openFor: {
-        taxes: false,
-        pos: false
-      }
+const Dashboard = props => {
+  const [allRooms, setAllRooms] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(utils.getDate());
+  const [currentDateObj, setCurrentDateObj] = useState(
+    utils.getDateObj(utils.getDate())
+  );
+
+  const [posDialogTitle, setPosDialogTitle] = useState("");
+  const [dialog, setDialog] = useState({
+    open: false,
+    contentOf: "",
+    size: "sm",
+    openFor: {
+      taxes: false,
+      pos: false
+    }
+  });
+
+  const [snackbarObj, setSnackbarObj] = useState({
+    open: false,
+    message: "",
+    variant: constants.snackbarVariants.success,
+    resetBookings: false
+  });
+
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  useEffect(() => {
+    const getRooms = async () => {
+      const allRooms = await roomService.getRooms();
+      allRooms.length > 0 && setAllRooms(allRooms);
+    };
+
+    getRooms();
+  }, []);
+
+  const setBookings = async dateObj => {
+    const allBookings = await bookingService.getBookings(dateObj);
+    if (allBookings.length > 0) {
+      setAllBookings(allBookings);
+      setLoading(false);
     }
   };
 
-  async componentDidMount() {
-    const allRooms = await roomService.getRooms();
-    this.setState({ allRooms });
-  }
-
-  setAllBookings = allBookings => {
-    this.setState({ allBookings });
+  const setDateObj = (dateObj, date) => {
+    setCurrentDateObj(dateObj);
+    setCurrentDate(date);
   };
 
-  handleDialog = (showFor, size) => {
-    const dialog = { ...this.state.dialog };
-    const openFor = { ...dialog.openFor };
+  const handleLoading = value => {
+    setLoading(value);
+  };
+
+  const handleRefresh = () => {
+    setLoading(true);
+    setBookings(currentDateObj);
+  };
+
+  const handleShowTaxes = () => {
+    handleDialog("taxes");
+  };
+
+  const handleDialog = (showFor, size) => {
+    const newDialogObj = { ...dialog };
+    const openFor = { ...newDialogObj.openFor };
     openFor[showFor] = !openFor[showFor];
-    dialog.open = !dialog.open;
-    dialog.contentOf = showFor;
-    dialog.size = size || "sm";
-    dialog.openFor = openFor;
-    this.setState({ dialog });
+    newDialogObj.open = !newDialogObj.open;
+    newDialogObj.contentOf = showFor;
+    newDialogObj.size = size || "sm";
+    newDialogObj.openFor = openFor;
+    setDialog(newDialogObj);
   };
 
-  handleShowTaxes = () => {
-    this.handleDialog("taxes");
+  const handleShowPOSDialog = title => {
+    setPosDialogTitle(title);
+    handleDialog("pos");
   };
 
-  handleShowPOSDialog = title => {
-    this.setState({ posDialogTitle: title });
-    this.handleDialog("pos");
+  const handleRedirectFromNavbar = () => {
+    props.history.replace("/");
   };
 
-  handleRefresh = () => {
-    window.location.reload();
+  const handleSnackbarEvent = snackbarObj => {
+    setSnackbarObj(snackbarObj);
+    setLoading(true);
+    snackbarObj.resetBookings && setBookings(currentDateObj);
   };
 
-  handleRedirectFromNavbar = () => {
-    this.props.history.replace("/");
+  const handleSnackBar = () => {
+    const newSnackbarObj = { ...snackbarObj };
+    newSnackbarObj.open = false;
+
+    setSnackbarObj(newSnackbarObj);
   };
 
-  handleFormRedirect = (bookingObj, roomObj, selectedDate) => {
+  const handleCheckOutRedirect = bookingObj => {
+    const selectedBooking = bookingObj && { ...bookingObj };
+    setSelectedBooking(selectedBooking);
+    props.history.push("/billing");
+  };
+
+  const handleRedirectFromBilling = bookingObj => {
+    const selectedBooking = bookingObj && { ...bookingObj };
+    setSelectedBooking(selectedBooking);
+    props.history.push("/report");
+  };
+
+  const handleFormRedirect = (bookingObj, roomObj, selectedDate) => {
     const selectedBooking = bookingObj && { ...bookingObj };
     const selectedRoom = { ...roomObj };
-    this.setState({ selectedBooking, selectedRoom, selectedDate });
+    setSelectedBooking(selectedBooking);
+    setSelectedRoom(selectedRoom);
+    setSelectedDate(selectedDate);
 
     if (bookingObj) {
-      if (bookingObj.status.checkedOut) this.props.history.push("/report");
-      else this.props.history.push("/booking/viewBooking");
-    } else this.props.history.push("/booking/newBooking");
+      if (bookingObj.status.checkedOut) props.history.push("/report");
+      else props.history.push("/booking/viewBooking");
+    } else props.history.push("/booking/newBooking");
   };
 
-  handleCheckOutRedirect = bookingObj => {
-    const selectedBooking = bookingObj && { ...bookingObj };
-    this.setState({ selectedBooking });
-    this.props.history.push("/billing");
-  };
-
-  handleRedirectFromBilling = bookingObj => {
-    const selectedBooking = bookingObj && { ...bookingObj };
-    this.setState({ selectedBooking });
-    this.props.history.push("/report");
-  };
-
-  handleSnackbarEvent = snackbarObj => {
-    this.setState({ snackbarObj });
-  };
-
-  handleSnackBar = () => {
-    const snackbarObj = { ...this.state.snackbarObj };
-    snackbarObj.open = false;
-
-    this.setState({ snackbarObj });
-  };
-
-  render() {
-    const {
-      currentDate,
-      isRefresh,
-      snackbarObj,
-      selectedBooking,
-      selectedRoom,
-      selectedDate,
-      allRooms,
-      allBookings,
-      dialog,
-      posDialogTitle
-    } = this.state;
-
-    return (
+  return (
+    <SnackBarContext.Provider value={handleSnackbarEvent}>
       <div className="mainContainer">
         <Snackbar
           open={snackbarObj.open}
           message={snackbarObj.message}
-          onClose={this.handleSnackBar}
+          onClose={handleSnackBar}
           variant={snackbarObj.variant}
         />
         <Navbar
-          onRefresh={this.handleRefresh}
-          showTaxes={this.handleShowTaxes}
-          showPOSDialog={this.handleShowPOSDialog}
-          path={this.props.location.pathname}
-          onRedirectFromNavbar={this.handleRedirectFromNavbar}
+          onRefresh={handleRefresh}
+          showTaxes={handleShowTaxes}
+          showPOSDialog={handleShowPOSDialog}
+          path={props.location.pathname}
+          onRedirectFromNavbar={handleRedirectFromNavbar}
         />
         <Dialog
           open={dialog.open}
-          onClose={() => this.handleDialog(dialog.contentOf)}
+          onClose={() => handleDialog(dialog.contentOf)}
           size={dialog.size}
         >
           {dialog.openFor.taxes && (
-            <Taxes onClose={() => this.handleDialog(dialog.contentOf)} />
+            <Taxes onClose={() => handleDialog(dialog.contentOf)} />
           )}
           {dialog.openFor.pos && (
             <POSDialog
               allBookings={allBookings}
               title={posDialogTitle}
-              onClose={() => this.handleDialog(dialog.contentOf)}
-              onSnackbarEvent={this.handleSnackbarEvent}
+              onClose={() => handleDialog(dialog.contentOf)}
+              // onSnackbarEvent={handleSnackbarEvent}
             />
           )}
         </Dialog>
@@ -166,11 +182,11 @@ class Dashboard extends Component {
               path={["/booking/newBooking", "/booking/viewBooking"]}
               render={props => (
                 <BookingFormLayout
-                  onSnackbarEvent={this.handleSnackbarEvent}
+                  onSnackbarEvent={handleSnackbarEvent}
                   selectedBooking={selectedBooking}
                   selectedRoom={selectedRoom}
                   selectedDate={selectedDate}
-                  onCheckOutRedirect={this.handleCheckOutRedirect}
+                  onCheckOutRedirect={handleCheckOutRedirect}
                   {...props}
                 />
               )}
@@ -179,9 +195,9 @@ class Dashboard extends Component {
               path="/billing"
               render={props => (
                 <BillingFormLayout
-                  onSnackbarEvent={this.handleSnackbarEvent}
+                  onSnackbarEvent={handleSnackbarEvent}
                   selectedBooking={selectedBooking}
-                  onRedirectFromBilling={this.handleRedirectFromBilling}
+                  onRedirectFromBilling={handleRedirectFromBilling}
                   {...props}
                 />
               )}
@@ -197,12 +213,15 @@ class Dashboard extends Component {
               exact
               render={props => (
                 <Calendar
-                  currentDate={currentDate}
-                  isRefresh={isRefresh}
-                  onRefresh={this.handleRefresh}
-                  onFormRedirect={this.handleFormRedirect}
                   allRooms={allRooms}
-                  setAllBookings={this.setAllBookings}
+                  currentDate={currentDate}
+                  currentDateObj={currentDateObj}
+                  onFormRedirect={handleFormRedirect}
+                  allBookings={allBookings}
+                  loading={loading}
+                  onLoading={handleLoading}
+                  setBookings={setBookings}
+                  setDateObj={setDateObj}
                   {...props}
                 />
               )}
@@ -211,8 +230,8 @@ class Dashboard extends Component {
           </Switch>
         </div>
       </div>
-    );
-  }
-}
+    </SnackBarContext.Provider>
+  );
+};
 
 export default Dashboard;

@@ -30,7 +30,9 @@ const BookingForm = props => {
     errors,
     options,
     onBack,
-    shouldDisable
+    shouldDisable,
+    openDatePicker,
+    handleDatePicker
   } = props;
 
   // const roomOptions = availableRooms.map(room => {
@@ -69,12 +71,13 @@ const BookingForm = props => {
       onChange: datefun,
       error: errors[id],
       minDate,
-      disabled: shouldDisable
+      disabled: shouldDisable,
+      open: openDatePicker[id]
     };
   };
 
   const getRoomOptions = roomType => {
-    if (availableRooms.length === 0) return [];
+    // if (availableRooms.length === 0) return [];
 
     const roomsByType = availableRooms.filter(
       room => room.roomType === roomType
@@ -109,24 +112,34 @@ const BookingForm = props => {
         )}
       </div>
       <div className="form-group">
-        {FormUtils.renderDatepicker(
-          getDateArgObj(
-            "checkIn",
-            "Check In",
-            "text",
-            utils.getDate(),
-            shouldDisable
-          )
-        )}
-        {FormUtils.renderDatepicker(
-          getDateArgObj(
-            "checkOut",
-            "Check Out",
-            "text",
-            data.checkIn,
-            shouldDisable
-          )
-        )}
+        <div
+          className={classes.datePicker}
+          onClick={() => handleDatePicker("checkIn")}
+        >
+          {FormUtils.renderDatepicker(
+            getDateArgObj(
+              "checkIn",
+              "Check In",
+              "text",
+              utils.getDate(),
+              shouldDisable
+            )
+          )}
+        </div>
+        <div
+          className={classes.datePicker}
+          onClick={() => handleDatePicker("checkOut")}
+        >
+          {FormUtils.renderDatepicker(
+            getDateArgObj(
+              "checkOut",
+              "Check Out",
+              "text",
+              data.checkIn,
+              shouldDisable
+            )
+          )}
+        </div>
       </div>
       <div className="form-group">
         {FormUtils.renderInput(
@@ -213,7 +226,6 @@ const BookingForm = props => {
                 </div>
               );
             })}
-            {/* {FormUtils.renderSelect("roomNumber", "Room Number", null, "")} */}
           </ExpansionPanelDetails>
         </ExpansionPanel>
       </div>

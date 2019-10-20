@@ -12,7 +12,6 @@ const useStyles = makeStyles(theme => ({
 const POSMenu = ({ showPOSDialog }) => {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
-  //const [showDialog, toggleDialog] = useState(false);
 
   const handleOpenPOSMenu = event => {
     setAnchorEl(event.currentTarget);
@@ -52,12 +51,10 @@ const POSMenu = ({ showPOSDialog }) => {
         <MenuItem onClick={() => handleOpenPOSDailog("Laundary")}>
           Laundary
         </MenuItem>
-        <MenuItem onClick={() => handleOpenPOSDailog("Miscellaneous")}>
-          Miscellaneous
+        <MenuItem onClick={() => handleOpenPOSDailog("Others")}>
+          Others
         </MenuItem>
-        <MenuItem onClick={() => handleOpenPOSDailog("Remarks")}>
-          Remarks
-        </MenuItem>
+        <MenuItem onClick={() => handleOpenPOSDailog("Agent")}>Agent</MenuItem>
       </Menu>
     </React.Fragment>
   );

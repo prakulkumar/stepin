@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import SnackBarContext from "./../../context/snackBarContext";
 import { DialogActions, DialogContent, Button } from "@material-ui/core";
 
 import bookingService from "../../services/bookingService";
@@ -12,136 +13,142 @@ import "./POS.scss";
 const { success, error } = constants.snackbarVariants;
 const schema = schemas.POSFormSchema;
 
-class POSForm extends Component {
-  state = {
-    data: {
-      roomNumber: "",
-      bookingId: "",
-      date: utils.getDate(),
-      amount: "",
-      remarks: ""
-    },
-    posData: [],
-    bookingOptions: [],
-    errors: {},
-    shouldDisable: false
-  };
+const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
+  const [data, setData] = useState({
+    roomNumber: "",
+    bookingId: "",
+    date: utils.getDate(),
+    amount: "",
+    remarks: ""
+  });
+  const [errors, setErrors] = useState({});
+  const [openDatePicker, setOpenDatePicker] = useState(false);
+  const [minDate, setMinDate] = useState(utils.getDate());
+  const [posData, setPosData] = useState([]);
+  const [bookingOptions, setBookingOptions] = useState([]);
+  const [roomOptions, setRoomOptions] = useState([]);
+  const [disable] = useState(false);
 
-  componentDidMount() {
-    this.filterCheckedInBookings();
-  }
+  const handleSnackbarEvent = useContext(SnackBarContext);
 
-  filterCheckedInBookings = () => {
-    let posData = [];
-    const filteredBookings = this.props.allBookings.filter(
+  useEffect(() => {
+    let POSData = [];
+    const filteredBookings = allBookings.filter(
       booking => booking.status.checkedIn && !booking.status.checkedOut
     );
     filteredBookings.forEach(booking => {
       booking.rooms.forEach(room => {
-        posData.push({ room, booking });
+        POSData.push({ room, booking });
       });
     });
-    this.setState({ posData });
-  };
+    setPosData(POSData);
+  }, [allBookings]);
 
-  getInputArgObj = (id, label, type, shouldDisable) => {
-    return {
-      id,
-      label,
-      name: id,
-      type,
-      value: this.state.data[id],
-      onChange: event => this.handleInputChange(event, id),
-      error: this.state.errors[id],
-      disabled: shouldDisable
-    };
-  };
-
-  getDateArgObj = (id, label, type, minDate, shouldDisable) => {
-    return {
-      id,
-      label,
-      name: id,
-      type,
-      value: this.state.data[id],
-      onChange: this.handleDatePickerChange,
-      error: this.state.errors[id],
-      minDate,
-      disabled: shouldDisable
-    };
-  };
-
-  getRoomOptions = () => {
-    return this.state.posData.map(data => ({
+  useEffect(() => {
+    const options = posData.map(data => ({
       label: data.room.roomNumber,
       value: data.room.roomNumber
     }));
+    setRoomOptions(options);
+  }, [posData]);
+
+  const getInputArgObj = (id, label, type, shouldDisable) => {
+    return {
+      id,
+      label,
+      name: id,
+      type,
+      value: data[id],
+      onChange: event => handleInputChange(event, id),
+      error: errors[id],
+      disabled: shouldDisable
+    };
   };
 
-  handleInputChange = (event, id) => {
-    const { data, errors } = { ...this.state };
+  const getDateArgObj = (id, label, type, minDate, shouldDisable) => {
+    return {
+      id,
+      label,
+      name: id,
+      type,
+      value: data[id],
+      onChange: handleDatePickerChange,
+      error: errors[id],
+      minDate,
+      disabled: shouldDisable,
+      open: openDatePicker
+    };
+  };
+
+  const handleInputChange = (event, id) => {
     const updatedState = FormUtils.handleInputChange(
       event.currentTarget,
       data,
       errors,
       schema
     );
-    this.setState({ data: updatedState.data, errors: updatedState.errors });
+    setData(updatedState.data);
+    setErrors(updatedState.errors);
   };
 
-  handleDatePickerChange = event => {
-    const data = { ...this.state.data };
-    data.date = utils.getDate(event);
-    this.setState({ data });
+  const handleDatePickerChange = event => {
+    const posDate = utils.getDate(event);
+    setTimeout(() => {
+      setData({ ...data, date: posDate });
+      setOpenDatePicker(false);
+    }, 10);
   };
 
-  setBookingOptions = ({ target: input }) => {
-    let errors = { ...this.state.errors };
-    delete errors[input.name];
+  const handleDatePicker = () => {
+    setOpenDatePicker(true);
+  };
+
+  const createBookingOptions = ({ target: input }) => {
+    let updatedErrors = { ...errors };
+    delete updatedErrors[input.name];
 
     const roomNo = input.value;
-    const filteredArray = this.state.posData.filter(
+    const filteredArray = posData.filter(
       data => data.room.roomNumber === roomNo
     );
-    const bookingOptions = filteredArray.map(item => ({
+    const options = filteredArray.map(item => ({
       label: `${item.booking.firstName} ${item.booking.lastName}`,
       value: item.booking.bookingId
     }));
-    const data = { ...this.state.data };
-    data.roomNumber = roomNo;
 
-    this.setState({ bookingOptions, data, errors });
+    setBookingOptions(options);
+    setData({ ...data, roomNumber: roomNo });
+    setErrors(updatedErrors);
   };
 
-  setBookingId = ({ target: input }) => {
-    const data = { ...this.state.data };
-    let errors = { ...this.state.errors };
-    delete errors[input.name];
+  const setBookingId = ({ target: input }) => {
+    let updatedErrors = { ...errors };
+    delete updatedErrors[input.name];
 
-    data.bookingId = input.value;
-    const filteredObj = this.state.posData.find(
-      item => item.booking.bookingId === data.bookingId
+    const bookingId = input.value;
+    const filteredObj = posData.find(
+      item => item.booking.bookingId === bookingId
     );
+    const minDate = utils.getDate(filteredObj.booking.checkIn);
 
-    data.date = utils.getDate(filteredObj.booking.checkIn);
-    this.setState({ data, errors });
+    setData({ ...data, date: minDate, bookingId: bookingId });
+    setMinDate(minDate);
+    setErrors(updatedErrors);
   };
 
-  checkForErrors = () => {
-    let errors = FormUtils.validate(this.state.data, schema);
+  const checkForErrors = () => {
+    let errors = FormUtils.validate(data, schema);
     errors = errors || {};
-    this.setState({ errors });
-
+    setErrors(errors);
     return Object.keys(errors).length;
   };
 
-  onFormSubmit = async event => {
+  const onFormSubmit = async event => {
     event.preventDefault();
-    const errors = this.checkForErrors();
+    const errors = checkForErrors();
     if (errors) return;
 
-    const { allBookings, title, onClose } = this.props;
-    const { bookingId, date, amount, remarks } = this.state.data;
+    const { bookingId, date, amount, remarks } = data;
     const booking = {
       ...allBookings.find(booking => booking.bookingId === bookingId)
     };
@@ -158,77 +165,67 @@ class POSForm extends Component {
     }
 
     const response = await bookingService.updateBooking(booking);
-    if (response.status === 200)
-      this.openSnackBar("Updated Successfully", success, "/");
-    else this.openSnackBar("Error Occurred", error);
+    if (response.status === 200) openSnackBar("Updated Successfully", success);
+    else openSnackBar("Error Occurred", error);
     onClose();
   };
 
-  openSnackBar = (message, variant, redirectTo) => {
-    const snakbarObj = { open: true, message, variant };
-    this.props.onSnackbarEvent(snakbarObj);
-    //redirectTo && this.props.history.push(redirectTo);
+  const openSnackBar = (message, variant) => {
+    const snakbarObj = { open: true, message, variant, resetBookings: true };
+    handleSnackbarEvent(snakbarObj);
   };
 
-  render() {
-    const roomOptions = this.getRoomOptions();
-    const { shouldDisable, errors } = this.state;
-    return (
-      <form onSubmit={event => this.onFormSubmit(event)}>
-        <DialogContent>
-          <div className="form-group">
-            {FormUtils.renderSelect({
-              id: "roomNumber",
-              label: "Room Number",
-              name: "roomNumber",
-              value: this.state.data.roomNumber,
-              onChange: event => this.setBookingOptions(event),
-              options: roomOptions,
-              error: errors.roomNumber,
-              disabled: shouldDisable
-            })}
-            {FormUtils.renderSelect({
-              id: "bookingId",
-              label: "Booking Id",
-              name: "bookingId",
-              value: this.state.data.bookingId,
-              onChange: event => this.setBookingId(event),
-              options: this.state.bookingOptions,
-              error: errors.bookingId,
-              disabled: shouldDisable
-            })}
-          </div>
-          <div className="form-group">
+  return (
+    <form onSubmit={event => onFormSubmit(event)}>
+      <DialogContent>
+        <div className="form-group">
+          {FormUtils.renderSelect({
+            id: "roomNumber",
+            label: "Room Number",
+            name: "roomNumber",
+            value: data.roomNumber,
+            onChange: event => createBookingOptions(event),
+            options: roomOptions,
+            error: errors.roomNumber,
+            disabled: disable
+          })}
+          {FormUtils.renderSelect({
+            id: "bookingId",
+            label: "Booking Id",
+            name: "bookingId",
+            value: data.bookingId,
+            onChange: event => setBookingId(event),
+            options: bookingOptions,
+            error: errors.bookingId,
+            disabled: disable
+          })}
+        </div>
+        <div className="form-group">
+          <div style={{ width: "100%" }} onClick={handleDatePicker}>
             {FormUtils.renderDatepicker(
-              this.getDateArgObj(
-                "date",
-                "Date",
-                "text",
-                this.state.data.date,
-                shouldDisable
-              )
-            )}
-            {FormUtils.renderInput(
-              this.getInputArgObj("amount", "Amount", "text", shouldDisable)
+              getDateArgObj("date", "Date", "text", minDate, disable)
             )}
           </div>
-          <div className="form-group">
-            {FormUtils.renderInput(
-              this.getInputArgObj("remarks", "Remarks", "text", shouldDisable)
-            )}
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="secondary">
-            Close
-          </Button>
-          <Button onClick={this.onFormSubmit} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </form>
-    );
-  }
-}
+          {FormUtils.renderInput(
+            getInputArgObj("amount", "Amount", "text", disable)
+          )}
+        </div>
+        <div className="form-group">
+          {FormUtils.renderInput(
+            getInputArgObj("remarks", "Remarks", "text", disable)
+          )}
+        </div>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="secondary">
+          Close
+        </Button>
+        <Button onClick={onFormSubmit} color="primary">
+          Save
+        </Button>
+      </DialogActions>
+    </form>
+  );
+};
 
 export default POSForm;

@@ -1,5 +1,11 @@
 import React from "react";
-import { IconButton, AppBar, Toolbar, Typography } from "@material-ui/core";
+import {
+  IconButton,
+  AppBar,
+  Toolbar,
+  Typography,
+  Tooltip
+} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import HotelIcon from "@material-ui/icons/Hotel";
 import MeetingRoomIcon from "@material-ui/icons/MeetingRoom";
@@ -27,47 +33,56 @@ const BookingFormHeader = props => {
           <Typography variant="h6" className={classes.formTitle}>
             Booking
           </Typography>
-          <IconButton
-            aria-label="account of current user"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-            color="inherit"
-            onClick={onEdit}
-          >
-            <EditIcon />
-          </IconButton>
+          <Tooltip title="Edit">
+            <IconButton
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              color="inherit"
+              onClick={onEdit}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+
           {!status.checkedIn && (
-            <IconButton
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              color="inherit"
-              onClick={onCancel}
-            >
-              <DeleteForeverIcon />
-            </IconButton>
+            <Tooltip title="Cancel">
+              <IconButton
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                color="inherit"
+                onClick={onCancel}
+              >
+                <DeleteForeverIcon />
+              </IconButton>
+            </Tooltip>
           )}
-          {moment().toDate() >= moment(checkIn).toDate() && (
-            <IconButton
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              color="inherit"
-              onClick={onCheckIn}
-            >
-              <HotelIcon />
-            </IconButton>
+          {!status.checkedIn && moment().toDate() >= moment(checkIn).toDate() && (
+            <Tooltip title="Check In">
+              <IconButton
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                color="inherit"
+                onClick={onCheckIn}
+              >
+                <HotelIcon />
+              </IconButton>
+            </Tooltip>
           )}
-          {moment().toDate() >= moment(checkOut).toDate() && status.checkedIn && (
-            <IconButton
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              color="inherit"
-              onClick={onCheckOut}
-            >
-              <MeetingRoomIcon />
-            </IconButton>
+          {status.checkedIn && moment().toDate() >= moment(checkOut).toDate() && (
+            <Tooltip title="Check Out">
+              <IconButton
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                color="inherit"
+                onClick={onCheckOut}
+              >
+                <MeetingRoomIcon />
+              </IconButton>
+            </Tooltip>
           )}
         </Toolbar>
       </AppBar>
