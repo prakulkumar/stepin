@@ -289,7 +289,7 @@ const BookingFormLayout = ({
     updatedData.status = { ...updatedData.status, cancel: true };
     setData(updatedData);
     setLoading(true);
-    updateBooking(data, "Booking Cancelled Successfully");
+    updateBooking(updatedData, "Booking Cancelled Successfully");
   };
 
   const handleCheckIn = () => {
@@ -298,7 +298,7 @@ const BookingFormLayout = ({
     updatedData.status = { ...updatedData.status, checkedIn: true };
     setData(updatedData);
     setLoading(true);
-    updateBooking(data, "Checked In Successfully");
+    updateBooking(updatedData, "Checked In Successfully");
   };
 
   const handleCheckOut = () => {
