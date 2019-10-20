@@ -60,6 +60,9 @@ const BillingFormLayout = props => {
       errors,
       schema
     );
+
+    updatedState.errors = checkBalance(updatedState.data, updatedState.errors);
+
     setData(updatedState.data);
     setErrors(updatedState.errors);
   };
@@ -68,7 +71,7 @@ const BillingFormLayout = props => {
     const checked = event.currentTarget.checked;
     let clonedData = { ...data };
     let clonedPayment = { ...payment };
-    const clonedErrors = { ...errors };
+    let clonedErrors = { ...errors };
 
     switch (name) {
       case "cash":
@@ -95,6 +98,8 @@ const BillingFormLayout = props => {
     }
     checked && delete clonedErrors.customError;
 
+    clonedErrors = checkBalance(clonedData, clonedErrors);
+
     setPayment(clonedPayment);
     setErrors(clonedErrors);
     setData(clonedData);
@@ -106,14 +111,29 @@ const BillingFormLayout = props => {
     else if (value === "withoutTax") removeTaxes();
   };
 
+  const checkBalance = (data, errors) => {
+    const total =
+      ((data.cash && parseInt(data.cash)) || 0) +
+      ((data.card && parseInt(data.card)) || 0) +
+      ((data.wallet && parseInt(data.wallet)) || 0);
+
+    if (total !== parseInt(selectedBooking.balance))
+      errors.customError = "Total varies from balance";
+    else delete errors.customError;
+
+    return errors;
+  };
+
   const handleFormSubmit = event => {
     event.preventDefault();
     const clonedData = { ...data };
 
-    const errors = FormUtils.validate(clonedData, schema);
+    let errors = FormUtils.validate(clonedData, schema);
     if (clonedData.cash || clonedData.card || clonedData.wallet)
       delete errors.customError;
     else errors.customError = "Please select any payment mode";
+
+    errors = checkBalance(clonedData, errors);
 
     const clonedPayment = payment;
     if (errors.cash) {
