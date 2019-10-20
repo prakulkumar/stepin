@@ -58,7 +58,7 @@ const BookingFormHeader = props => {
               </IconButton>
             </Tooltip>
           )}
-          {moment().toDate() >= moment(checkIn).toDate() && (
+          {!status.checkedIn && moment().toDate() >= moment(checkIn).toDate() && (
             <Tooltip title="Check In">
               <IconButton
                 aria-label="account of current user"
@@ -71,7 +71,7 @@ const BookingFormHeader = props => {
               </IconButton>
             </Tooltip>
           )}
-          {moment().toDate() >= moment(checkOut).toDate() && status.checkedIn && (
+          {status.checkedIn && moment().toDate() >= moment(checkOut).toDate() && (
             <Tooltip title="Check Out">
               <IconButton
                 aria-label="account of current user"

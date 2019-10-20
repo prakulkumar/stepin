@@ -21,7 +21,7 @@ const BillingFormLayout = props => {
   const handleSnackbarEvent = useContext(SnackBarContext);
 
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState();
+  const [errors, setErrors] = useState({});
 
   const [selectedBooking, setSelectedBooking] = useState({});
   const [taxSlabs, setTaxSlabs] = useState();
@@ -40,16 +40,15 @@ const BillingFormLayout = props => {
   });
 
   useEffect(() => {
+    const { selectedBooking: booking, history } = props;
     const getTaxSlabs = async () => {
       const taxSlabs = await taxService.getTaxSlabs();
-      const roomCharges = selectedBooking.roomCharges;
-      setSelectedBooking(selectedBooking);
+      const roomCharges = booking.roomCharges;
+      setSelectedBooking(booking);
       setTaxSlabs(taxSlabs);
       setRoomCharges(roomCharges);
     };
-
-    const { selectedBooking, history } = props;
-    if (selectedBooking === null) history.replace("/");
+    if (booking === null) history.replace("/");
     else getTaxSlabs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -61,7 +60,6 @@ const BillingFormLayout = props => {
       errors,
       schema
     );
-
     setData(updatedState.data);
     setErrors(updatedState.errors);
   };
@@ -99,7 +97,7 @@ const BillingFormLayout = props => {
 
     setPayment(clonedPayment);
     setErrors(clonedErrors);
-    setData(data);
+    setData(clonedData);
   };
 
   const handleRadioGroupChange = event => {
