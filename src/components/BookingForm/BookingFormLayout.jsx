@@ -202,11 +202,9 @@ const BookingFormLayout = ({
 
     updatedData.rooms = getUpdatedRooms(availableRooms, updatedRooms);
 
-    setTimeout(() => {
-      setData(updatedData);
-      setAvailableRooms(availableRooms);
-      setOpenDatePicker(newOpenDatePicker);
-    }, 10);
+    setOpenDatePicker(newOpenDatePicker);
+    setData(updatedData);
+    setAvailableRooms(availableRooms);
   };
 
   const handleDatePicker = id => {

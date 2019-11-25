@@ -25,6 +25,9 @@ export default makeStyles(theme => ({
   panelLabel: {
     flexGrow: 1
   },
+  panelIcon: {
+    marginLeft: 20
+  },
   deleteButton: {
     marginTop: 20
   },

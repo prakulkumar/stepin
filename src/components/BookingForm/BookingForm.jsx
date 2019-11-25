@@ -7,6 +7,8 @@ import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import DeleteIcon from "@material-ui/icons/Delete";
 
 import FormUtils from "../../utils/formUtils";
@@ -17,7 +19,7 @@ import "./BookingForm.scss";
 const BookingForm = props => {
   const classes = useStyles();
 
-  let [expanded] = React.useState("panel1");
+  let [expanded, setExpanded] = React.useState(false);
   const {
     onFormSubmit,
     onInputChange: inputfun,
@@ -46,8 +48,12 @@ const BookingForm = props => {
   //   })
   // );
 
-  const handleChange = panel => (event, isExpanded) => {
-    // setExpanded(isExpanded ? panel : false);
+  // const handleChange = panel => (event, isExpanded) => {
+  //   setExpanded(isExpanded ? panel : false);
+  // };
+
+  const handleExpansion = value => {
+    setExpanded(value);
   };
 
   const getInputArgObj = (id, label, type, shouldDisable) => {
@@ -105,6 +111,14 @@ const BookingForm = props => {
         {FormUtils.renderInput(
           getInputArgObj("lastName", "Last Name", "text", shouldDisable)
         )}
+        {FormUtils.renderInput(
+          getInputArgObj(
+            "contactNumber",
+            "Contact Number",
+            "number",
+            shouldDisable
+          )
+        )}
       </div>
       <div className="form-group">
         {FormUtils.renderInput(
@@ -140,24 +154,14 @@ const BookingForm = props => {
             )
           )}
         </div>
-      </div>
-      <div className="form-group">
         {FormUtils.renderInput(
           getInputArgObj("adults", "Adults", "number", shouldDisable)
         )}
+      </div>
+      <div className="form-group">
         {FormUtils.renderInput(
           getInputArgObj("children", "Children", "number", shouldDisable)
         )}
-        {FormUtils.renderInput(
-          getInputArgObj(
-            "contactNumber",
-            "Contact Number",
-            "number",
-            shouldDisable
-          )
-        )}
-      </div>
-      <div className="form-group">
         {FormUtils.renderInput(
           getInputArgObj("roomCharges", "Room Charges", "number", shouldDisable)
         )}
@@ -166,26 +170,41 @@ const BookingForm = props => {
         )}
       </div>
       <div className={classes.panel}>
-        <ExpansionPanel
-          expanded={expanded === "panel1"}
-          onChange={handleChange("panel1")}
-        >
+        <ExpansionPanel expanded={expanded === "panel1"}>
           <ExpansionPanelSummary
             aria-controls="panel1a-content"
             id="panel1a-header"
             className={classes.panelHeader}
           >
             <div className={classes.expansionPanelSummary}>
-              <Typography className={classes.panelLabel}>Room</Typography>
-              <Fab
-                size="small"
-                color="primary"
-                aria-label="add"
-                onClick={onAddRoom}
-                disabled={shouldDisable}
-              >
-                <AddIcon />
-              </Fab>
+              <Typography className={classes.panelLabel}>Rooms</Typography>
+              {expanded === "panel1" && (
+                <Fab
+                  size="small"
+                  color="primary"
+                  aria-label="add"
+                  onClick={onAddRoom}
+                  disabled={shouldDisable}
+                >
+                  <AddIcon />
+                </Fab>
+              )}
+              {expanded === false && (
+                <div
+                  className={classes.panelIcon}
+                  onClick={() => handleExpansion("panel1")}
+                >
+                  <ExpandMoreIcon />
+                </div>
+              )}
+              {expanded === "panel1" && (
+                <div
+                  className={classes.panelIcon}
+                  onClick={() => handleExpansion(false)}
+                >
+                  <ExpandLessIcon />
+                </div>
+              )}
             </div>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails className={classes.expansionPanelDetails}>
