@@ -8,6 +8,7 @@ import BillingFormLayout from "../BillingForm/BillingFormLayout";
 import Report from "../Report/Report";
 import Taxes from "../Taxes/Taxes";
 import POSDialog from "../POS/POSDialog";
+import CancelDialog from "../CancelDialog/CancelDialog";
 import Snackbar from "../../common/Snackbar/Snackbar";
 import Dialog from "./../../common/Dialog/Dialog";
 
@@ -17,6 +18,8 @@ import SnackBarContext from "./../../context/snackBarContext";
 import constants from "../../utils/constants";
 import utils from "../../utils/utils";
 import "./Dashboard.scss";
+
+const { success, error } = constants.snackbarVariants;
 
 const Dashboard = props => {
   const [allRooms, setAllRooms] = useState([]);
@@ -34,7 +37,8 @@ const Dashboard = props => {
     size: "sm",
     openFor: {
       taxes: false,
-      pos: false
+      pos: false,
+      cancel: false
     }
   });
 
@@ -82,6 +86,30 @@ const Dashboard = props => {
 
   const handleShowTaxes = () => {
     handleDialog("taxes");
+  };
+
+  const handleShowCancelDialog = () => {
+    handleDialog("cancel");
+  };
+
+  const handleCancelBooking = async () => {
+    const booking = { ...selectedBooking };
+    booking.status = { ...booking.status, cancel: true };
+    setLoading(true);
+    const { status } = await bookingService.updateBooking(booking);
+    if (status) {
+      setLoading(false);
+      handleDialog("cancel");
+    }
+    if (status === 200)
+      openSnackBar("Booking Cancelled Successfully", success, "/");
+    else openSnackBar("Error Occurred", error);
+  };
+
+  const openSnackBar = (message, variant, redirectTo) => {
+    const snakbarObj = { open: true, message, variant, resetBookings: false };
+    handleSnackbarEvent(snakbarObj);
+    redirectTo && props.history.push(redirectTo);
   };
 
   const handleDialog = (showFor, size) => {
@@ -163,6 +191,12 @@ const Dashboard = props => {
           onClose={() => handleDialog(dialog.contentOf)}
           size={dialog.size}
         >
+          {dialog.openFor.cancel && (
+            <CancelDialog
+              onClose={() => handleDialog(dialog.contentOf)}
+              onCancel={() => handleCancelBooking()}
+            />
+          )}
           {dialog.openFor.taxes && (
             <Taxes onClose={() => handleDialog(dialog.contentOf)} />
           )}
@@ -187,6 +221,7 @@ const Dashboard = props => {
                   selectedRoom={selectedRoom}
                   selectedDate={selectedDate}
                   onCheckOutRedirect={handleCheckOutRedirect}
+                  showCancelDialog={handleShowCancelDialog}
                   {...props}
                 />
               )}

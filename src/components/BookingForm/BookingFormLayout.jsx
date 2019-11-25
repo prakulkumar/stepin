@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import utils from "../../utils/utils";
 
 import Card from "../../common/Card/Card";
 import BookingForm from "../BookingForm/BookingForm";
 import BookingFormHeader from "./BookingFormHeader";
 import LoaderDialog from "../../common/LoaderDialog/LoaderDialog";
 
+import utils from "../../utils/utils";
 import FormUtils from "../../utils/formUtils";
 import constants from "../../utils/constants";
 import schemas from "../../utils/joiUtils";
-import "./BookingFormLayout.scss";
 import roomService from "../../services/roomService";
 import bookingService from "../../services/bookingService";
+import "./BookingFormLayout.scss";
 
 const schema = schemas.bookingFormSchema;
 const { success, error } = constants.snackbarVariants;
@@ -30,7 +30,8 @@ const BookingFormLayout = ({
   selectedBooking,
   selectedDate,
   onSnackbarEvent,
-  onCheckOutRedirect
+  onCheckOutRedirect,
+  showCancelDialog
 }) => {
   const [data, setData] = useState({
     hotelName: "Hotel Black Rose",
@@ -267,7 +268,7 @@ const BookingFormLayout = ({
     let newErrors = { ...errors };
     if (newErrors.rooms)
       newErrors.rooms = newErrors.rooms.filter(error => error.index !== index);
-    if (newErrors.rooms.length === 0) delete newErrors.rooms;
+    else delete newErrors.rooms;
 
     let rooms = [...data.rooms];
     rooms = rooms.filter((room, i) => i !== index);
@@ -285,11 +286,12 @@ const BookingFormLayout = ({
   };
 
   const handleCancel = () => {
-    const updatedData = { ...data };
-    updatedData.status = { ...updatedData.status, cancel: true };
-    setData(updatedData);
-    setLoading(true);
-    updateBooking(updatedData, "Booking Cancelled Successfully");
+    showCancelDialog();
+    // const updatedData = { ...data };
+    // updatedData.status = { ...updatedData.status, cancel: true };
+    // setData(updatedData);
+    // setLoading(true);
+    // updateBooking(updatedData, "Booking Cancelled Successfully");
   };
 
   const handleCheckIn = () => {
