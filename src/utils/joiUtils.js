@@ -55,9 +55,9 @@ export default {
     roomNumber: Joi.string()
       .required()
       .label("Room Number"),
-    bookingId: Joi.string()
+    posOption: Joi.string()
       .required()
-      .label("Booking"),
+      .label("POS Options"),
     date: Joi.date()
       .required()
       .label("Date"),

@@ -13,23 +13,31 @@ import "./POS.scss";
 const { success, error } = constants.snackbarVariants;
 const schema = schemas.POSFormSchema;
 
-const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
+const POSForm = ({ allBookings, onClose }) => {
   const [data, setData] = useState({
     roomNumber: "",
-    bookingId: "",
+    posOption: "",
     date: utils.getDate(),
     amount: "",
     remarks: ""
   });
   const [errors, setErrors] = useState({});
   const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [minDate, setMinDate] = useState(utils.getDate());
   const [posData, setPosData] = useState([]);
-  const [bookingOptions, setBookingOptions] = useState([]);
+  const [maxDate, setMaxDate] = useState(utils.getDate());
   const [roomOptions, setRoomOptions] = useState([]);
   const [disable] = useState(false);
+  const minDate = utils.getDate();
 
   const handleSnackbarEvent = useContext(SnackBarContext);
+
+  const posOptions = [
+    { label: "Food", value: "Food" },
+    { label: "Transport", value: "Transport" },
+    { label: "Laundary", value: "Laundary" },
+    { label: "Others", value: "Others" },
+    { label: "Agent", value: "Agent" }
+  ];
 
   useEffect(() => {
     let POSData = [];
@@ -65,7 +73,7 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
     };
   };
 
-  const getDateArgObj = (id, label, type, minDate, shouldDisable) => {
+  const getDateArgObj = (id, label, type, minDate, shouldDisable, maxDate) => {
     return {
       id,
       label,
@@ -76,7 +84,8 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
       error: errors[id],
       minDate,
       disabled: shouldDisable,
-      open: openDatePicker
+      open: openDatePicker,
+      maxDate
     };
   };
 
@@ -103,42 +112,31 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
     setOpenDatePicker(true);
   };
 
-  const createBookingOptions = ({ target: input }) => {
+  const setPosOptions = ({ target: input }) => {
+    let updatedErrors = { ...errors };
+    delete updatedErrors[input.name];
+    const posOption = input.value;
+
+    setData({ ...data, posOption });
+    setErrors(updatedErrors);
+  };
+
+  const setBooking = ({ target: input }) => {
     let updatedErrors = { ...errors };
     delete updatedErrors[input.name];
 
     const roomNo = input.value;
-    const filteredArray = posData.filter(
-      data => data.room.roomNumber === roomNo
-    );
-    const options = filteredArray.map(item => ({
-      label: `${item.booking.firstName} ${item.booking.lastName}`,
-      value: item.booking.bookingId
-    }));
-
-    setBookingOptions(options);
+    const filteredObj = posData.find(data => data.room.roomNumber === roomNo);
+    const maxDate = utils.getDate(filteredObj.booking.checkOut);
+    setMaxDate(maxDate);
     setData({ ...data, roomNumber: roomNo });
-    setErrors(updatedErrors);
-  };
-
-  const setBookingId = ({ target: input }) => {
-    let updatedErrors = { ...errors };
-    delete updatedErrors[input.name];
-
-    const bookingId = input.value;
-    const filteredObj = posData.find(
-      item => item.booking.bookingId === bookingId
-    );
-    const minDate = utils.getDate(filteredObj.booking.checkIn);
-
-    setData({ ...data, date: minDate, bookingId: bookingId });
-    setMinDate(minDate);
     setErrors(updatedErrors);
   };
 
   const checkForErrors = () => {
     let errors = FormUtils.validate(data, schema);
     errors = errors || {};
+
     setErrors(errors);
     return Object.keys(errors).length;
   };
@@ -146,22 +144,22 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
   const onFormSubmit = async event => {
     event.preventDefault();
     const errors = checkForErrors();
+
     if (errors) return;
 
-    const { bookingId, date, amount, remarks } = data;
-    const booking = {
-      ...allBookings.find(booking => booking.bookingId === bookingId)
-    };
+    const { roomNumber, posOption, date, amount, remarks } = data;
+    const filterObj = posData.find(obj => obj.room.roomNumber === roomNumber);
+    const booking = { ...filterObj.booking };
 
     if (booking.pos) {
       let pos = { ...booking.pos };
-      pos[title] = pos[title]
-        ? [...pos[title], { date, amount, remarks }]
+      pos[posOption] = pos[posOption]
+        ? [...pos[posOption], { date, amount, remarks }]
         : [{ date, amount, remarks }];
       booking.pos = pos;
     } else {
       booking.pos = {};
-      booking.pos[title] = [{ date, amount, remarks }];
+      booking.pos[posOption] = [{ date, amount, remarks }];
     }
 
     const response = await bookingService.updateBooking(booking);
@@ -184,26 +182,26 @@ const POSForm = ({ allBookings, title, onClose, onSnackbarEvent }) => {
             label: "Room Number",
             name: "roomNumber",
             value: data.roomNumber,
-            onChange: event => createBookingOptions(event),
+            onChange: event => setBooking(event),
             options: roomOptions,
             error: errors.roomNumber,
             disabled: disable
           })}
           {FormUtils.renderSelect({
-            id: "bookingId",
-            label: "Booking Id",
-            name: "bookingId",
-            value: data.bookingId,
-            onChange: event => setBookingId(event),
-            options: bookingOptions,
-            error: errors.bookingId,
+            id: "posOption",
+            label: "POS Options",
+            name: "posOption",
+            value: data.posOption,
+            onChange: event => setPosOptions(event),
+            options: posOptions,
+            error: errors.posOption,
             disabled: disable
           })}
         </div>
         <div className="form-group">
           <div style={{ width: "100%" }} onClick={handleDatePicker}>
             {FormUtils.renderDatepicker(
-              getDateArgObj("date", "Date", "text", minDate, disable)
+              getDateArgObj("date", "Date", "text", minDate, disable, maxDate)
             )}
           </div>
           {FormUtils.renderInput(

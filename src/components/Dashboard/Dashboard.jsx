@@ -205,7 +205,6 @@ const Dashboard = props => {
               allBookings={allBookings}
               title={posDialogTitle}
               onClose={() => handleDialog(dialog.contentOf)}
-              // onSnackbarEvent={handleSnackbarEvent}
             />
           )}
         </Dialog>

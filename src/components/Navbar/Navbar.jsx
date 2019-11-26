@@ -1,7 +1,6 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Toolbar, Typography, Button } from "@material-ui/core";
-import POSMenu from "../POS/POSMenu";
 
 const useStyles = makeStyles(theme => ({
   stepIn: {
@@ -16,7 +15,7 @@ const useStyles = makeStyles(theme => ({
   title: {
     flexGrow: 1
   },
-  buttonTaxes: {
+  mr20: {
     marginRight: 20
   }
 }));
@@ -40,7 +39,7 @@ const HeaderNavbar = ({
             </div>
           </Typography>
           <Button
-            className={classes.buttonTaxes}
+            className={classes.mr20}
             color="inherit"
             onClick={() => showTaxes()}
           >
@@ -48,7 +47,13 @@ const HeaderNavbar = ({
           </Button>
           {path === "/" && (
             <React.Fragment>
-              <POSMenu showPOSDialog={showPOSDialog} />
+              <Button
+                className={classes.mr20}
+                color="inherit"
+                onClick={() => showPOSDialog()}
+              >
+                POS
+              </Button>
               <Button color="inherit" onClick={onRefresh}>
                 Refresh
               </Button>
