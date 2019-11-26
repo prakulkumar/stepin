@@ -1,40 +1,53 @@
-import React, { useState, useEffect, useContext } from "react";
-import SnackBarContext from "./../../context/snackBarContext";
+import React, { useState, useEffect, useContext } from 'react';
+import SnackBarContext from './../../context/snackBarContext';
 import {
   DialogActions,
   DialogContent,
   Button,
-  Divider
-} from "@material-ui/core";
+  Divider,
+  Typography
+} from '@material-ui/core';
 
-import bookingService from "../../services/bookingService";
-import FormUtils from "../../utils/formUtils";
-import utils from "../../utils/utils";
-import schemas from "../../utils/joiUtils";
-import { makeStyles } from "@material-ui/core/styles";
+import bookingService from '../../services/bookingService';
+import FormUtils from '../../utils/formUtils';
+import utils from '../../utils/utils';
+import schemas from '../../utils/joiUtils';
+import { makeStyles } from '@material-ui/core/styles';
 
-import constants from "../../utils/constants";
-import "./POS.scss";
-import PosInfo from "./POSInfo";
+import constants from '../../utils/constants';
+import './POS.scss';
+import PosInfo from './POSInfo';
 
 const { success, error } = constants.snackbarVariants;
 const schema = schemas.POSFormSchema;
 
 const useStyles = makeStyles(theme => ({
   posContainer: {
-    display: "grid",
-    gridTemplateColumns: "1fr min-content 1fr"
+    display: 'grid',
+    gridTemplateColumns: '1fr min-content .7fr'
+  },
+  divider: {
+    paddingBottom: 20
+  },
+  posNotFound: {
+    width: '100%',
+    height: '100%',
+    display: 'grid',
+    justifyContent: 'center',
+    alignContent: 'center',
+    paddingBottom: 50,
+    color: '#9f9f9f'
   }
 }));
 
 const POSForm = ({ allBookings, onClose }) => {
   const classes = useStyles();
   const [data, setData] = useState({
-    roomNumber: "",
-    posOption: "",
+    roomNumber: '',
+    posOption: '',
     date: utils.getDate(),
-    amount: "",
-    remarks: ""
+    amount: '',
+    remarks: ''
   });
   const [errors, setErrors] = useState({});
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -48,11 +61,11 @@ const POSForm = ({ allBookings, onClose }) => {
   const handleSnackbarEvent = useContext(SnackBarContext);
 
   const posOptions = [
-    { label: "Food", value: "Food" },
-    { label: "Transport", value: "Transport" },
-    { label: "Laundary", value: "Laundary" },
-    { label: "Others", value: "Others" },
-    { label: "Agent", value: "Agent" }
+    { label: 'Food', value: 'Food' },
+    { label: 'Transport', value: 'Transport' },
+    { label: 'Laundary', value: 'Laundary' },
+    { label: 'Others', value: 'Others' },
+    { label: 'Agent', value: 'Agent' }
   ];
 
   useEffect(() => {
@@ -181,8 +194,8 @@ const POSForm = ({ allBookings, onClose }) => {
     }
 
     const response = await bookingService.updateBooking(booking);
-    if (response.status === 200) openSnackBar("Updated Successfully", success);
-    else openSnackBar("Error Occurred", error);
+    if (response.status === 200) openSnackBar('Updated Successfully', success);
+    else openSnackBar('Error Occurred', error);
     onClose();
   };
 
@@ -195,11 +208,11 @@ const POSForm = ({ allBookings, onClose }) => {
     <div className={classes.posContainer}>
       <form onSubmit={event => onFormSubmit(event)}>
         <DialogContent>
-          <div className="form-group">
+          <div className='form-group'>
             {FormUtils.renderSelect({
-              id: "roomNumber",
-              label: "Room Number",
-              name: "roomNumber",
+              id: 'roomNumber',
+              label: 'Room Number',
+              name: 'roomNumber',
               value: data.roomNumber,
               onChange: event => setBooking(event),
               options: roomOptions,
@@ -207,9 +220,9 @@ const POSForm = ({ allBookings, onClose }) => {
               disabled: disable
             })}
             {FormUtils.renderSelect({
-              id: "posOption",
-              label: "POS Options",
-              name: "posOption",
+              id: 'posOption',
+              label: 'POS Options',
+              name: 'posOption',
               value: data.posOption,
               onChange: event => setPosOptions(event),
               options: posOptions,
@@ -217,33 +230,43 @@ const POSForm = ({ allBookings, onClose }) => {
               disabled: disable
             })}
           </div>
-          <div className="form-group">
-            <div style={{ width: "100%" }} onClick={handleDatePicker}>
+          <div className='form-group'>
+            <div style={{ width: '100%' }} onClick={handleDatePicker}>
               {FormUtils.renderDatepicker(
-                getDateArgObj("date", "Date", "text", minDate, disable, maxDate)
+                getDateArgObj('date', 'Date', 'text', minDate, disable, maxDate)
               )}
             </div>
             {FormUtils.renderInput(
-              getInputArgObj("amount", "Amount", "text", disable)
+              getInputArgObj('amount', 'Amount', 'text', disable)
             )}
           </div>
-          <div className="form-group">
+          <div className='form-group'>
             {FormUtils.renderInput(
-              getInputArgObj("remarks", "Remarks", "text", disable)
+              getInputArgObj('remarks', 'Remarks', 'text', disable)
             )}
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} color="secondary">
+          <Button onClick={onClose} color='secondary'>
             Close
           </Button>
-          <Button onClick={onFormSubmit} color="primary">
+          <Button onClick={onFormSubmit} color='primary'>
             Save
           </Button>
         </DialogActions>
       </form>
-      <Divider orientation="vertical" />
-      <PosInfo posInformation={selectedBooking.pos && selectedBooking.pos} />
+      <div className={classes.divider}>
+        <Divider orientation='vertical' />
+      </div>
+      {selectedBooking.pos ? (
+        <PosInfo posInformation={selectedBooking.pos} />
+      ) : (
+        <div className={classes.posNotFound}>
+          <Typography variant='h6' component='h6'>
+            POS information not available
+          </Typography>
+        </div>
+      )}
     </div>
   );
 };

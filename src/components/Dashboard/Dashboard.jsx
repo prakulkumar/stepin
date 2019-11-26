@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { Route, Switch, Redirect } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { Route, Switch, Redirect } from 'react-router-dom';
 
-import Calendar from "./../Calendar/Calendar";
-import Navbar from "./../Navbar/Navbar";
-import BookingFormLayout from "../BookingForm/BookingFormLayout";
-import BillingFormLayout from "../BillingForm/BillingFormLayout";
-import Report from "../Report/Report";
-import Taxes from "../Taxes/Taxes";
-import POSDialog from "../POS/POSDialog";
-import CancelDialog from "../CancelDialog/CancelDialog";
-import Snackbar from "../../common/Snackbar/Snackbar";
-import Dialog from "./../../common/Dialog/Dialog";
+import Calendar from './../Calendar/Calendar';
+import Navbar from './../Navbar/Navbar';
+import BookingFormLayout from '../BookingForm/BookingFormLayout';
+import BillingFormLayout from '../BillingForm/BillingFormLayout';
+import Report from '../Report/Report';
+import Taxes from '../Taxes/Taxes';
+import POSDialog from '../POS/POSDialog';
+import CancelDialog from '../CancelDialog/CancelDialog';
+import Snackbar from '../../common/Snackbar/Snackbar';
+import Dialog from './../../common/Dialog/Dialog';
 
-import roomService from "../../services/roomService";
-import bookingService from "../../services/bookingService";
-import SnackBarContext from "./../../context/snackBarContext";
-import constants from "../../utils/constants";
-import utils from "../../utils/utils";
-import "./Dashboard.scss";
+import roomService from '../../services/roomService';
+import bookingService from '../../services/bookingService';
+import SnackBarContext from './../../context/snackBarContext';
+import constants from '../../utils/constants';
+import utils from '../../utils/utils';
+import './Dashboard.scss';
 
 const { success, error } = constants.snackbarVariants;
 
@@ -30,11 +30,11 @@ const Dashboard = props => {
     utils.getDateObj(utils.getDate())
   );
 
-  const [posDialogTitle, setPosDialogTitle] = useState("");
+  const [posDialogTitle, setPosDialogTitle] = useState('');
   const [dialog, setDialog] = useState({
     open: false,
-    contentOf: "",
-    size: "sm",
+    contentOf: '',
+    size: 'sm',
     openFor: {
       taxes: false,
       pos: false,
@@ -44,7 +44,7 @@ const Dashboard = props => {
 
   const [snackbarObj, setSnackbarObj] = useState({
     open: false,
-    message: "",
+    message: '',
     variant: constants.snackbarVariants.success,
     resetBookings: false
   });
@@ -56,7 +56,7 @@ const Dashboard = props => {
   useEffect(() => {
     const getRooms = async () => {
       const allRooms = await roomService.getRooms();
-      allRooms.length > 0 && setAllRooms(allRooms);
+      allRooms && allRooms.length > 0 && setAllRooms(allRooms);
     };
 
     getRooms();
@@ -64,7 +64,7 @@ const Dashboard = props => {
 
   const setBookings = async dateObj => {
     const allBookings = await bookingService.getBookings(dateObj);
-    if (allBookings.length > 0) {
+    if (allBookings && allBookings.length > 0) {
       setAllBookings(allBookings);
       setLoading(false);
     }
@@ -85,11 +85,11 @@ const Dashboard = props => {
   };
 
   const handleShowTaxes = () => {
-    handleDialog("taxes");
+    handleDialog('taxes');
   };
 
   const handleShowCancelDialog = () => {
-    handleDialog("cancel");
+    handleDialog('cancel');
   };
 
   const handleCancelBooking = async () => {
@@ -99,11 +99,11 @@ const Dashboard = props => {
     const { status } = await bookingService.updateBooking(booking);
     if (status) {
       setLoading(false);
-      handleDialog("cancel");
+      handleDialog('cancel');
     }
     if (status === 200)
-      openSnackBar("Booking Cancelled Successfully", success, "/");
-    else openSnackBar("Error Occurred", error);
+      openSnackBar('Booking Cancelled Successfully', success, '/');
+    else openSnackBar('Error Occurred', error);
   };
 
   const openSnackBar = (message, variant, redirectTo) => {
@@ -118,18 +118,18 @@ const Dashboard = props => {
     openFor[showFor] = !openFor[showFor];
     newDialogObj.open = !newDialogObj.open;
     newDialogObj.contentOf = showFor;
-    newDialogObj.size = size || "sm";
+    newDialogObj.size = size || 'sm';
     newDialogObj.openFor = openFor;
     setDialog(newDialogObj);
   };
 
   const handleShowPOSDialog = title => {
     setPosDialogTitle(title);
-    handleDialog("pos", "md");
+    handleDialog('pos', 'md');
   };
 
   const handleRedirectFromNavbar = () => {
-    props.history.replace("/");
+    props.history.replace('/');
   };
 
   const handleSnackbarEvent = snackbarObj => {
@@ -148,13 +148,13 @@ const Dashboard = props => {
   const handleCheckOutRedirect = bookingObj => {
     const selectedBooking = bookingObj && { ...bookingObj };
     setSelectedBooking(selectedBooking);
-    props.history.push("/billing");
+    props.history.push('/billing');
   };
 
   const handleRedirectFromBilling = bookingObj => {
     const selectedBooking = bookingObj && { ...bookingObj };
     setSelectedBooking(selectedBooking);
-    props.history.push("/report");
+    props.history.push('/report');
   };
 
   const handleFormRedirect = (bookingObj, roomObj, selectedDate) => {
@@ -165,14 +165,14 @@ const Dashboard = props => {
     setSelectedDate(selectedDate);
 
     if (bookingObj) {
-      if (bookingObj.status.checkedOut) props.history.push("/report");
-      else props.history.push("/booking/viewBooking");
-    } else props.history.push("/booking/newBooking");
+      if (bookingObj.status.checkedOut) props.history.push('/report');
+      else props.history.push('/booking/viewBooking');
+    } else props.history.push('/booking/newBooking');
   };
 
   return (
     <SnackBarContext.Provider value={handleSnackbarEvent}>
-      <div className="mainContainer">
+      <div className='mainContainer'>
         <Snackbar
           open={snackbarObj.open}
           message={snackbarObj.message}
@@ -209,10 +209,10 @@ const Dashboard = props => {
           )}
         </Dialog>
 
-        <div className="subContainer">
+        <div className='subContainer'>
           <Switch>
             <Route
-              path={["/booking/newBooking", "/booking/viewBooking"]}
+              path={['/booking/newBooking', '/booking/viewBooking']}
               render={props => (
                 <BookingFormLayout
                   onSnackbarEvent={handleSnackbarEvent}
@@ -226,7 +226,7 @@ const Dashboard = props => {
               )}
             />
             <Route
-              path="/billing"
+              path='/billing'
               render={props => (
                 <BillingFormLayout
                   onSnackbarEvent={handleSnackbarEvent}
@@ -237,13 +237,13 @@ const Dashboard = props => {
               )}
             />
             <Route
-              path="/report"
+              path='/report'
               render={props => (
                 <Report selectedBooking={selectedBooking} {...props} />
               )}
             />
             <Route
-              path="/"
+              path='/'
               exact
               render={props => (
                 <Calendar
@@ -260,7 +260,7 @@ const Dashboard = props => {
                 />
               )}
             />
-            <Redirect to="/" />
+            <Redirect to='/' />
           </Switch>
         </div>
       </div>
