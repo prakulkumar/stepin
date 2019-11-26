@@ -67,12 +67,18 @@ const BookingFormLayout = ({
   const [isEdit, setIsEdit] = useState(false);
   const [shouldDisable, setShouldDisable] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isNewBooking, setIsNewBooking] = useState(true);
 
   useEffect(() => {
     const { pathname } = location;
     if (selectedRoom !== null) {
-      if (pathname === "/booking/viewBooking") setViewBookingData();
-      else if (pathname === "/booking/newBooking") setNewBookingData();
+      if (pathname === "/booking/viewBooking") {
+        setViewBookingData();
+        setIsNewBooking(false);
+      } else if (pathname === "/booking/newBooking") {
+        setNewBookingData();
+        setIsNewBooking(true);
+      }
     } else history.replace("/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -319,6 +325,7 @@ const BookingFormLayout = ({
               onCancel={handleCancel}
               onCheckIn={handleCheckIn}
               onCheckOut={handleCheckOut}
+              isNewBooking={isNewBooking}
             />
           }
           content={
