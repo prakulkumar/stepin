@@ -1,6 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from '@material-ui/core';
+import utils from '../../utils/utils';
 
 const useStyles = makeStyles(theme => ({
   fontWeightBold: {
@@ -8,11 +9,14 @@ const useStyles = makeStyles(theme => ({
     padding: '10px 0'
   },
   posInfoContainer: {
-    padding: '20px 24px 8px 24px'
+    padding: '20px 24px 8px 24px',
+    height: 290,
+    overflow: 'auto'
   },
   posInfoSection: {
     display: 'grid',
-    gridTemplateColumns: '0.7fr 1fr 1fr'
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    justifyItems: 'center'
   }
 }));
 
@@ -24,6 +28,7 @@ const PosInfo = ({ posInformation }) => {
     <div className={classes.posInfoContainer}>
       <div className={classes.posInfoSection}>
         <div className={classes.fontWeightBold}>POS</div>
+        <div className={classes.fontWeightBold}>Date</div>
         <div className={classes.fontWeightBold}>Amount</div>
         <div className={classes.fontWeightBold}>Remarks</div>
       </div>
@@ -36,6 +41,7 @@ const PosInfo = ({ posInformation }) => {
                   <Typography variant='subtitle1' component='span'>
                     {key}
                   </Typography>
+                  <div>{utils.getFormattedDate(prosInfo.date)}</div>
                   <div>&#8377; {prosInfo.amount}</div>
                   <div>{prosInfo.remarks}</div>
                 </>

@@ -24,7 +24,7 @@ const schema = schemas.POSFormSchema;
 const useStyles = makeStyles(theme => ({
   posContainer: {
     display: 'grid',
-    gridTemplateColumns: '1fr min-content .7fr'
+    gridTemplateColumns: '1fr min-content 1fr'
   },
   divider: {
     paddingBottom: 20
