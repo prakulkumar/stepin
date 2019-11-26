@@ -125,7 +125,7 @@ const Dashboard = props => {
 
   const handleShowPOSDialog = title => {
     setPosDialogTitle(title);
-    handleDialog("pos");
+    handleDialog("pos", "md");
   };
 
   const handleRedirectFromNavbar = () => {

@@ -1,19 +1,34 @@
 import React, { useState, useEffect, useContext } from "react";
 import SnackBarContext from "./../../context/snackBarContext";
-import { DialogActions, DialogContent, Button } from "@material-ui/core";
+import {
+  DialogActions,
+  DialogContent,
+  Button,
+  Divider
+} from "@material-ui/core";
 
 import bookingService from "../../services/bookingService";
 import FormUtils from "../../utils/formUtils";
 import utils from "../../utils/utils";
 import schemas from "../../utils/joiUtils";
+import { makeStyles } from "@material-ui/core/styles";
 
 import constants from "../../utils/constants";
 import "./POS.scss";
+import PosInfo from "./POSInfo";
 
 const { success, error } = constants.snackbarVariants;
 const schema = schemas.POSFormSchema;
 
+const useStyles = makeStyles(theme => ({
+  posContainer: {
+    display: "grid",
+    gridTemplateColumns: "1fr min-content 1fr"
+  }
+}));
+
 const POSForm = ({ allBookings, onClose }) => {
+  const classes = useStyles();
   const [data, setData] = useState({
     roomNumber: "",
     posOption: "",
@@ -26,6 +41,7 @@ const POSForm = ({ allBookings, onClose }) => {
   const [posData, setPosData] = useState([]);
   const [maxDate, setMaxDate] = useState(utils.getDate());
   const [roomOptions, setRoomOptions] = useState([]);
+  const [selectedBooking, setSelectedBooking] = useState({});
   const [disable] = useState(false);
   const minDate = utils.getDate();
 
@@ -128,6 +144,9 @@ const POSForm = ({ allBookings, onClose }) => {
     const roomNo = input.value;
     const filteredObj = posData.find(data => data.room.roomNumber === roomNo);
     const maxDate = utils.getDate(filteredObj.booking.checkOut);
+    const booking = { ...filteredObj.booking };
+
+    setSelectedBooking(booking);
     setMaxDate(maxDate);
     setData({ ...data, roomNumber: roomNo });
     setErrors(updatedErrors);
@@ -147,9 +166,8 @@ const POSForm = ({ allBookings, onClose }) => {
 
     if (errors) return;
 
-    const { roomNumber, posOption, date, amount, remarks } = data;
-    const filterObj = posData.find(obj => obj.room.roomNumber === roomNumber);
-    const booking = { ...filterObj.booking };
+    const { posOption, date, amount, remarks } = data;
+    const booking = selectedBooking;
 
     if (booking.pos) {
       let pos = { ...booking.pos };
@@ -174,55 +192,59 @@ const POSForm = ({ allBookings, onClose }) => {
   };
 
   return (
-    <form onSubmit={event => onFormSubmit(event)}>
-      <DialogContent>
-        <div className="form-group">
-          {FormUtils.renderSelect({
-            id: "roomNumber",
-            label: "Room Number",
-            name: "roomNumber",
-            value: data.roomNumber,
-            onChange: event => setBooking(event),
-            options: roomOptions,
-            error: errors.roomNumber,
-            disabled: disable
-          })}
-          {FormUtils.renderSelect({
-            id: "posOption",
-            label: "POS Options",
-            name: "posOption",
-            value: data.posOption,
-            onChange: event => setPosOptions(event),
-            options: posOptions,
-            error: errors.posOption,
-            disabled: disable
-          })}
-        </div>
-        <div className="form-group">
-          <div style={{ width: "100%" }} onClick={handleDatePicker}>
-            {FormUtils.renderDatepicker(
-              getDateArgObj("date", "Date", "text", minDate, disable, maxDate)
+    <div className={classes.posContainer}>
+      <form onSubmit={event => onFormSubmit(event)}>
+        <DialogContent>
+          <div className="form-group">
+            {FormUtils.renderSelect({
+              id: "roomNumber",
+              label: "Room Number",
+              name: "roomNumber",
+              value: data.roomNumber,
+              onChange: event => setBooking(event),
+              options: roomOptions,
+              error: errors.roomNumber,
+              disabled: disable
+            })}
+            {FormUtils.renderSelect({
+              id: "posOption",
+              label: "POS Options",
+              name: "posOption",
+              value: data.posOption,
+              onChange: event => setPosOptions(event),
+              options: posOptions,
+              error: errors.posOption,
+              disabled: disable
+            })}
+          </div>
+          <div className="form-group">
+            <div style={{ width: "100%" }} onClick={handleDatePicker}>
+              {FormUtils.renderDatepicker(
+                getDateArgObj("date", "Date", "text", minDate, disable, maxDate)
+              )}
+            </div>
+            {FormUtils.renderInput(
+              getInputArgObj("amount", "Amount", "text", disable)
             )}
           </div>
-          {FormUtils.renderInput(
-            getInputArgObj("amount", "Amount", "text", disable)
-          )}
-        </div>
-        <div className="form-group">
-          {FormUtils.renderInput(
-            getInputArgObj("remarks", "Remarks", "text", disable)
-          )}
-        </div>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="secondary">
-          Close
-        </Button>
-        <Button onClick={onFormSubmit} color="primary">
-          Save
-        </Button>
-      </DialogActions>
-    </form>
+          <div className="form-group">
+            {FormUtils.renderInput(
+              getInputArgObj("remarks", "Remarks", "text", disable)
+            )}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} color="secondary">
+            Close
+          </Button>
+          <Button onClick={onFormSubmit} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </form>
+      <Divider orientation="vertical" />
+      <PosInfo posInformation={selectedBooking.pos && selectedBooking.pos} />
+    </div>
   );
 };
 
