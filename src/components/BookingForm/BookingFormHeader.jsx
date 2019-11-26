@@ -23,7 +23,8 @@ const BookingFormHeader = props => {
     onCheckOut,
     status,
     checkIn,
-    checkOut
+    checkOut,
+    isNewBooking
   } = props;
 
   return (
@@ -33,19 +34,21 @@ const BookingFormHeader = props => {
           <Typography variant="h6" className={classes.formTitle}>
             Booking
           </Typography>
-          <Tooltip title="Edit">
-            <IconButton
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              color="inherit"
-              onClick={onEdit}
-            >
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
+          {!isNewBooking && (
+            <Tooltip title="Edit">
+              <IconButton
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                color="inherit"
+                onClick={onEdit}
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+          )}
 
-          {!status.checkedIn && (
+          {!status.checkedIn && !isNewBooking && (
             <Tooltip title="Cancel">
               <IconButton
                 aria-label="account of current user"
@@ -58,32 +61,36 @@ const BookingFormHeader = props => {
               </IconButton>
             </Tooltip>
           )}
-          {!status.checkedIn && moment().toDate() >= moment(checkIn).toDate() && (
-            <Tooltip title="Check In">
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                color="inherit"
-                onClick={onCheckIn}
-              >
-                <HotelIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-          {status.checkedIn && moment().toDate() >= moment(checkOut).toDate() && (
-            <Tooltip title="Check Out">
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                color="inherit"
-                onClick={onCheckOut}
-              >
-                <MeetingRoomIcon />
-              </IconButton>
-            </Tooltip>
-          )}
+          {!status.checkedIn &&
+            moment().toDate() >= moment(checkIn).toDate() &&
+            !isNewBooking && (
+              <Tooltip title="Check In">
+                <IconButton
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  color="inherit"
+                  onClick={onCheckIn}
+                >
+                  <HotelIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          {status.checkedIn &&
+            moment().toDate() >= moment(checkOut).toDate() &&
+            !isNewBooking && (
+              <Tooltip title="Check Out">
+                <IconButton
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  color="inherit"
+                  onClick={onCheckOut}
+                >
+                  <MeetingRoomIcon />
+                </IconButton>
+              </Tooltip>
+            )}
         </Toolbar>
       </AppBar>
     </div>
